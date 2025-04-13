@@ -14,15 +14,21 @@ cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT
 * core library currently only provides: `move`, `sphere`, `union`, `intersection`, `inverse` and `differnce`
 
 ## Sphere Example
+Either use the built-in implementation from the core library
+```Koto
+# sphere with radius=1.0, x=0.0 (default), y=0.0 (default), z=0.0 (default)
+sphere 1
+```
+or build it from scratch by using fidget `Tree` operations in similar as with Rhai 
 ```Koto
 # sphere
 (x.square() + y.square() + z.square()).sqrt() - 1
 ```
-or
+or from scratch, but with importing fidget `Tree` operations into global namespace
 ```Koto
 from fidget import square, sqrt
 
 # sphere
 sqrt(square(x) + square(y) + square(z)) - 1
 ```
-see `models` folder for more examples (all the fidget models have been ported tp Koto)
+see `models` folder for more examples (all Rhai fidget models have been ported to Koto, plus some new ones)
