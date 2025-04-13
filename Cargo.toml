@@ -23,7 +23,7 @@ log = "0.4"
 nalgebra = { version = "0.33", features = ["serde-serialize"] }
 notify = "8.0"
 zerocopy = { version = "0.8", features = ["derive"] }
-rhai = { version = "1.17", features = ["sync"] }                # TEMPORARY !!!!!!!
+fidget-koto = { path = "crates/fidget-koto" }
 
 [patch.crates-io]
 koto = { git = "https://github.com/koto-lang/koto" }

@@ -1,0 +1,7 @@
+s1 = sphere 0.6, -0.5
+s2 = sphere 0.6, 0.5
+
+shapes = []
+shapes.push s1
+shapes.push s2
+shapes

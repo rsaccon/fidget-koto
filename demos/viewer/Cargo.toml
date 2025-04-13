@@ -15,8 +15,7 @@ nalgebra.workspace = true
 notify.workspace = true
 zerocopy.workspace = true
 fidget.workspace = true
-koto.workspace = true
-rhai.workspace = true              # TEMPOARARY
+fidget-koto.workspace = true
 
 [features]
 default = ["jit"]

@@ -1,0 +1,17 @@
+from fidget import square, sqrt, max, min, abs
+
+smin_circular = |a, b, k|
+  k *= 1.0/(1.0-(0.5).sqrt())
+  h = max(k-abs(a-b), 0.0)/k
+  return min(a, b) - k*0.5*(1.0+h-sqrt(1.0-h*(h-2.0)))
+
+smin_cubic_polynominal = |a, b, k|
+  k *= 6.0
+  h = max(k-abs(a-b), 0.0)/k
+  return min(a, b) - h*h*h*k*(1.0/6.0)
+
+s1 = sphere 0.6, -0.5
+s2 = sphere 0.6, 0.5
+
+# smin_circular s1, s2, 0.09
+smin_cubic_polynominal s1, s2, 0.05

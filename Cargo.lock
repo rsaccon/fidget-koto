@@ -1351,11 +1351,10 @@ dependencies = [
  "eframe",
  "env_logger",
  "fidget",
- "koto",
+ "fidget-koto",
  "log",
  "nalgebra",
  "notify",
- "rhai",
  "zerocopy 0.8.24",
 ]
 

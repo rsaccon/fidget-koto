@@ -12,10 +12,10 @@ use notify::Watcher;
 
 use fidget::{
     gui::{Canvas2, Canvas3, CursorState, DragMode},
-    render::{
-        GeometryPixel, ImageRenderConfig, View2, View3, VoxelRenderConfig,
-    },
+    render::{GeometryPixel, ImageRenderConfig, View2, View3, VoxelRenderConfig},
 };
+
+use fidget_koto::ScriptContext;
 
 use std::{error::Error, path::Path};
 
@@ -24,7 +24,7 @@ mod draw3d;
 mod script;
 mod watcher;
 
-/// Minimal viewer, using Fidget to render a Rhai script
+/// Minimal viewer, using Fidget to render a Koto script
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
@@ -54,14 +54,12 @@ struct RenderResult {
 
 fn render_thread<F>(
     cfg: Receiver<RenderSettings>,
-    rx: Receiver<Result<fidget::rhai::ScriptContext, String>>,
+    rx: Receiver<Result<ScriptContext, String>>,
     tx: Sender<Result<RenderResult, String>>,
     wake: Sender<()>,
 ) -> Result<()>
 where
-    F: fidget::eval::Function
-        + fidget::eval::MathFunction
-        + fidget::render::RenderHints,
+    F: fidget::eval::Function + fidget::eval::MathFunction + fidget::render::RenderHints,
 {
     // This is our target framerate; updates faster than this will be merged.
     const DT: std::time::Duration = std::time::Duration::from_millis(16);
@@ -118,8 +116,7 @@ where
                         .shapes
                         .iter()
                         .map(|s| {
-                            let tape =
-                                fidget::shape::Shape::<F>::from(s.tree.clone());
+                            let tape = fidget::shape::Shape::<F>::from(s.tree.clone());
                             render_2d(
                                 *mode,
                                 canvas.view(),
@@ -143,8 +140,7 @@ where
                         .shapes
                         .iter()
                         .map(|s| {
-                            let tape =
-                                fidget::shape::Shape::<F>::from(s.tree.clone());
+                            let tape = fidget::shape::Shape::<F>::from(s.tree.clone());
                             render_3d(canvas.view(), tape, voxel_size)
                         })
                         .collect();
@@ -233,8 +229,7 @@ fn render_3d<F: fidget::eval::Function + fidget::render::RenderHints>(
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    env_logger::Builder::from_env(Env::default().default_filter_or("info"))
-        .init();
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     let args = Args::parse();
 
     // This is a pipelined process with separate threads for each stage.
@@ -242,31 +237,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     //
     // - File watcher (via `notify`) produces () notifications
     // - Loading from a file produces the text of the script
-    // - Script evaluation produces the Rhai result (or error)
+    // - Script evaluation produces the Koto result (or error)
     // - Rendering produces the image (or an error)
     // - Posting wake events to the GUI
     //
     // In addition, the GUI (main) thread will send new rendering configuration
     // to the render thread when the user changes things.
     let (file_watcher_tx, file_watcher_rx) = unbounded();
-    let (rhai_script_tx, rhai_script_rx) = unbounded();
-    let (rhai_result_tx, rhai_result_rx) = unbounded();
+    let (koto_script_tx, koto_script_rx) = unbounded();
+    let (koto_result_tx, koto_result_rx) = unbounded();
     let (render_tx, render_rx) = unbounded();
     let (config_tx, config_rx) = unbounded();
     let (wake_tx, wake_rx) = unbounded();
 
     let path = Path::new(&args.target).to_owned();
     std::thread::spawn(move || {
-        let _ = watcher::file_watcher_thread(
-            &path,
-            file_watcher_rx,
-            rhai_script_tx,
-        );
+        let _ = watcher::file_watcher_thread(&path, file_watcher_rx, koto_script_tx);
         info!("file watcher thread is done");
     });
     std::thread::spawn(move || {
-        let _ = script::rhai_script_thread(rhai_script_rx, rhai_result_tx);
-        info!("rhai script thread is done");
+        let _ = script::koto_script_thread(koto_script_rx, koto_result_tx);
+        info!("koto script thread is done");
     });
     std::thread::spawn(move || {
         #[cfg(feature = "jit")]
@@ -275,8 +266,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         #[cfg(not(feature = "jit"))]
         type F = fidget::vm::VmFunction;
 
-        let _ =
-            render_thread::<F>(config_rx, rhai_result_rx, render_tx, wake_tx);
+        let _ = render_thread::<F>(config_rx, koto_result_rx, render_tx, wake_tx);
         info!("render thread is done");
     });
 
@@ -390,9 +380,7 @@ impl RenderMode {
             RenderMode::TwoD { .. } => {
                 // TODO get parameters from 2D camera here?
                 *self = RenderMode::ThreeD {
-                    canvas: Canvas3::new(fidget::render::VoxelSize::new(
-                        0, 0, 0,
-                    )),
+                    canvas: Canvas3::new(fidget::render::VoxelSize::new(0, 0, 0)),
                     mode: new_mode,
                 };
                 true
@@ -463,8 +451,7 @@ impl ViewerApp {
                         RenderMode::TwoD { .. } => None,
                         RenderMode::ThreeD { mode, .. } => Some(*mode),
                     };
-                    for m in [Mode3D::Heightmap, Mode3D::Color, Mode3D::Shaded]
-                    {
+                    for m in [Mode3D::Heightmap, Mode3D::Color, Mode3D::Shaded] {
                         ui.radio_value(&mut mode_3d, Some(m), m.description());
                     }
                     if let Some(m) = mode_3d {
@@ -475,12 +462,7 @@ impl ViewerApp {
                         RenderMode::TwoD { mode, .. } => Some(*mode),
                         RenderMode::ThreeD { .. } => None,
                     };
-                    for m in [
-                        Mode2D::Debug,
-                        Mode2D::Sdf,
-                        Mode2D::ExactSdf,
-                        Mode2D::Color,
-                    ] {
+                    for m in [Mode2D::Debug, Mode2D::Sdf, Mode2D::ExactSdf, Mode2D::Color] {
                         ui.radio_value(&mut mode_2d, Some(m), m.description());
                     }
 
@@ -527,10 +509,7 @@ impl ViewerApp {
                             if images.is_empty() {
                                 None
                             } else {
-                                Some((
-                                    std::mem::take(images),
-                                    image_data.image_size,
-                                ))
+                                Some((std::mem::take(images), image_data.image_size))
                             },
                             *mode,
                             *max_depth,
@@ -546,10 +525,7 @@ impl ViewerApp {
                             None
                         } else {
                             // Pass the image buffers into the GPU renderer
-                            Some((
-                                std::mem::take(images),
-                                image_data.image_size,
-                            ))
+                            Some((std::mem::take(images), image_data.image_size))
                         }),
                     ));
                 }
@@ -600,11 +576,7 @@ impl ViewerApp {
         }
 
         // Return events from the canvas in the inner response
-        ui.interact(
-            rect,
-            egui::Id::new("canvas"),
-            egui::Sense::click_and_drag(),
-        )
+        ui.interact(rect, egui::Id::new("canvas"), egui::Sense::click_and_drag())
     }
 }
 
@@ -634,27 +606,21 @@ impl eframe::App for ViewerApp {
         // Handle pan and zoom
         match &mut self.mode {
             RenderMode::TwoD { canvas, .. } => {
-                let image_size = fidget::render::ImageSize::new(
-                    rect.width() as u32,
-                    rect.height() as u32,
-                );
+                let image_size =
+                    fidget::render::ImageSize::new(rect.width() as u32, rect.height() as u32);
 
-                let cursor_state =
-                    match (r.interact_pointer_pos(), r.hover_pos()) {
-                        (Some(p), _) => Some((p, true)),
-                        (_, Some(p)) => Some((p, false)),
-                        (None, None) => None,
+                let cursor_state = match (r.interact_pointer_pos(), r.hover_pos()) {
+                    (Some(p), _) => Some((p, true)),
+                    (_, Some(p)) => Some((p, false)),
+                    (None, None) => None,
+                }
+                .map(|(p, drag)| {
+                    let p = p - rect.min;
+                    CursorState {
+                        screen_pos: Point2::new(p.x.round() as i32, p.y.round() as i32),
+                        drag,
                     }
-                    .map(|(p, drag)| {
-                        let p = p - rect.min;
-                        CursorState {
-                            screen_pos: Point2::new(
-                                p.x.round() as i32,
-                                p.y.round() as i32,
-                            ),
-                            drag,
-                        }
-                    });
+                });
                 render_changed |= canvas.interact(
                     image_size,
                     cursor_state,
@@ -668,35 +634,28 @@ impl eframe::App for ViewerApp {
                     rect.width().max(rect.height()) as u32,
                 );
 
-                let cursor_state =
-                    match (r.interact_pointer_pos(), r.hover_pos()) {
-                        (Some(p), _) => {
-                            let drag =
-                                if r.dragged_by(egui::PointerButton::Primary) {
-                                    Some(DragMode::Pan)
-                                } else if r
-                                    .dragged_by(egui::PointerButton::Secondary)
-                                {
-                                    Some(DragMode::Rotate)
-                                } else {
-                                    None
-                                };
+                let cursor_state = match (r.interact_pointer_pos(), r.hover_pos()) {
+                    (Some(p), _) => {
+                        let drag = if r.dragged_by(egui::PointerButton::Primary) {
+                            Some(DragMode::Pan)
+                        } else if r.dragged_by(egui::PointerButton::Secondary) {
+                            Some(DragMode::Rotate)
+                        } else {
+                            None
+                        };
 
-                            Some((p, drag))
-                        }
-                        (_, Some(p)) => Some((p, None)),
-                        (None, None) => None,
+                        Some((p, drag))
                     }
-                    .map(|(p, drag)| {
-                        let p = p - rect.min;
-                        CursorState {
-                            screen_pos: Point2::new(
-                                p.x.round() as i32,
-                                p.y.round() as i32,
-                            ),
-                            drag,
-                        }
-                    });
+                    (_, Some(p)) => Some((p, None)),
+                    (None, None) => None,
+                }
+                .map(|(p, drag)| {
+                    let p = p - rect.min;
+                    CursorState {
+                        screen_pos: Point2::new(p.x.round() as i32, p.y.round() as i32),
+                        drag,
+                    }
+                });
                 render_changed |= canvas.interact(
                     image_size,
                     cursor_state,
