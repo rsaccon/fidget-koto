@@ -1,0 +1,30 @@
+[workspace.package]
+authors = ["Roberto Saccon <rsaccon@gmail.com>"]
+edition = "2024"
+keywords = ["scripting", "fidget", "koto"]
+description = "Koto scripting for fidget implicit surfaces"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/rsaccon/koto-fidget"
+
+[workspace]
+members = ["crates/*", "demos/*"]
+resolver = "2"
+
+[workspace.dependencies]
+fidget = "0.3.6"
+koto = "0.16.0"
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+crossbeam-channel = "0.5"
+eframe = { version = "0.31", features = ["wgpu"] }
+env_logger = "0.11"
+log = "0.4"
+nalgebra = { version = "0.33", features = ["serde-serialize"] }
+notify = "8.0"
+zerocopy = { version = "0.8", features = ["derive"] }
+rhai = { version = "1.17", features = ["sync"] }                # TEMPORARY !!!!!!!
+
+[patch.crates-io]
+koto = { git = "https://github.com/koto-lang/koto" }
+fidget = { git = "https://github.com/mkeeter/fidget" }
