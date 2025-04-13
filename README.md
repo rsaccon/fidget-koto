@@ -4,8 +4,9 @@
 ## Demo
 fidget-viewer https://github.com/mkeeter/fidget/tree/main/demos/viewer modified to accept Koto scripts.
 ```Shell
-cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT
+cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT_MODEL
 ```
+The `models` folder has some examples (all Rhai fidget models have been ported to Koto and some new ones added).
 
 ## Differences to fidget rhai scripting:
 
@@ -31,4 +32,3 @@ from fidget import square, sqrt
 # sphere
 sqrt(square(x) + square(y) + square(z)) - 1
 ```
-See `models` folder for more examples (all Rhai fidget models have been ported to Koto and some new ones added).
