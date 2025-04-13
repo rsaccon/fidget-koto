@@ -31,4 +31,4 @@ from fidget import square, sqrt
 # sphere
 sqrt(square(x) + square(y) + square(z)) - 1
 ```
-see `models` folder for more examples (all Rhai fidget models have been ported to Koto, plus some new ones)
+See `models` folder for more examples (all Rhai fidget models have been ported to Koto and some new ones added).
