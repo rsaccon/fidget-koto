@@ -22,13 +22,11 @@ draw sphere 1
 ```
 or build it from scratch by using fidget `Tree` operations as with Rhai:
 ```Koto
-# sphere
 draw (x.square() + y.square() + z.square()).sqrt() - 1
 ```
 or from scratch, but with importing fidget `Tree` operations into global namespace:
 ```Koto
 from fidget import square, sqrt
 
-# sphere
 draw sqrt(square(x) + square(y) + square(z)) - 1
 ```
