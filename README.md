@@ -20,7 +20,7 @@ Either use the built-in implementation from the core library:
 # sphere with radius=1.0, x=0.0 (default), y=0.0 (default), z=0.0 (default)
 draw sphere 1
 ```
-or build it from scratch by using fidget `Tree` operations in similar as with Rhai:
+or build it from scratch by using fidget `Tree` operations as with Rhai:
 ```Koto
 # sphere
 draw (x.square() + y.square() + z.square()).sqrt() - 1
