@@ -12,7 +12,7 @@ The `models` folder has some examples (all Rhai fidget models have been ported t
 * `draw_rgb()` has not been implemented yet
 * core library currently only provides: `move`, `sphere`, `union`, `intersection`, `inverse` and `differnce`
 * Default engine initialization is same as with Rhai: `Engine::default()`, but if we want to set
-a scritping executuion time limit, the initialisation is: `Engine::new(execution_limit: Duration)`
+a scripting executuion time limit, the initialisation is: `Engine::new(execution_limit: Duration)`
 
 ## Sphere Example
 Either use the built-in implementation from the core library:
