@@ -1,5 +1,6 @@
 use koto::prelude::*;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use fidget::{Error, context::Tree};
 
@@ -13,7 +14,7 @@ pub struct Engine {
 
 impl Default for Engine {
     fn default() -> Self {
-        Self::new()
+        Self::new(Duration::from_secs(1))
     }
 }
 
@@ -23,10 +24,16 @@ impl Engine {
     /// The context includes a variety of functions that operate on [`Tree`]
     /// handles.
     ///
-    /// In addition, it includes everything in [`core.koto`](crate::koto::core),
+    /// In addition, it includes everything in [`core.koto`](fidget_koto::core),
     /// which is effectively our standard library.
-    pub fn new() -> Self {
-        let koto = Koto::default();
+    pub fn new(execution_limit: Duration) -> Self {
+        let koto = Koto::with_settings(
+            KotoSettings::default()
+                .with_execution_limit(execution_limit)
+                .with_module_imported_callback({
+                    move |path| println!("TODO: handle import: {:?}", path)
+                }),
+        );
 
         koto.prelude().insert("x", TreeObject::x());
         koto.prelude().insert("y", TreeObject::y());
@@ -66,21 +73,9 @@ impl Engine {
         }
 
         match self.engine.compile_and_run(script) {
-            Ok(KValue::Object(obj)) => {
-                if obj.is_a::<TreeObject>() {
-                    let koto_tree = obj.cast::<TreeObject>();
-                    let tree = koto_tree.unwrap().inner();
-                    self.context.lock().unwrap().shapes.push(DrawShape {
-                        tree,
-                        color_rgb: [u8::MAX; 3],
-                    })
-                } else {
-                    println!("No shapes returned")
-                }
-            }
-            Ok(KValue::List(list)) => {
-                for el in list.data().iter() {
-                    match el {
+            Ok(_) => {
+                for (_key, val) in self.engine.exports().data().iter() {
+                    match val {
                         KValue::Object(obj) if obj.is_a::<TreeObject>() => {
                             let koto_tree = obj.cast::<TreeObject>();
                             let tree = koto_tree.unwrap().inner();
@@ -89,12 +84,10 @@ impl Engine {
                                 color_rgb: [u8::MAX; 3],
                             })
                         }
-                        // TODO: if tuple containing color then do as in rhai viewer
                         _ => (),
                     }
                 }
             }
-            Ok(_) => println!("No shapes returned"),
             Err(err) => println!("compile error:{}", err),
         }
 

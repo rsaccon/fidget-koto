@@ -1,5 +1,11 @@
 from fidget import square, sqrt
 
+exported_shapes_counter = { count: 0 }
+
+export draw = |shape|
+  exported_shapes_counter.count += 1
+  export { "__fidget_shape_{exported_shapes_counter.count}__": shape }
+
 export move = |shape, dx, dy, dz = 0.0|
   ax, ay, az = axes()
   shape.remap_xyz ax - dx, ay - dy, az - dz

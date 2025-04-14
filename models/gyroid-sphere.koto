@@ -1,6 +1,5 @@
 from fidget import sqrt, square, max, min, abs, sin, cos
 
-shapes = []
 scale = 30
 
 x = x * scale
@@ -12,5 +11,4 @@ fill = abs(gyroid) - 0.2
 
 sphere = sqrt(square(x) + square(y) + square(z)) - 25
 
-shapes.push max(sphere, fill)
-shapes
+draw max(sphere, fill)

@@ -23,4 +23,4 @@ rescale = manhattan / radius
 blend = 1.0  # adjust the sphere-ness of the sponge
 r = (rescale * blend) + (1.0 - blend)
 
-shape_sponge.remap_xyz(x / r, y / r, z / r)
+draw shape_sponge.remap_xyz(x / r, y / r, z / r)

@@ -9,7 +9,7 @@ pub(crate) fn koto_script_thread(
     rx: Receiver<String>,
     tx: Sender<Result<ScriptContext, String>>,
 ) -> Result<()> {
-    let mut engine = Engine::new();
+    let mut engine = Engine::default();
     loop {
         let script = rx.recv()?;
         debug!("koto script thread received script");

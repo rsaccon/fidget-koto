@@ -37,4 +37,4 @@ cabin = min(cabin, max(min(window_frame, window_cross), y.abs() - 11))
 cabin = min(cabin, max(window_root - 3, y.abs() - 10.6))
 
 cabin = min(max(-z, cabin), roof)
-cabin
+draw(cabin)
