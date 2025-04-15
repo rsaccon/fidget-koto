@@ -1,0 +1,9 @@
+# this works only for render option: `2D color`
+
+s1 = sphere 0.6, -0.5, -0.25
+s2 = sphere 0.6, 0.5, -0.25
+s3 = sphere 0.6, 0.0, 0.25
+
+draw_rgb s1, 1, 0, 0
+draw_rgb s2, 0, 1, 0
+draw_rgb s3, 0, 0, 1

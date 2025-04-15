@@ -9,7 +9,6 @@ cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT_MODEL
 The `models` folder has some examples (all Rhai fidget models have been ported to Koto and some new ones added).
 
 ## Differences to fidget Rhai scripting:
-* `draw_rgb()` has not been implemented yet
 * core library currently only provides: `move`, `sphere`, `union`, `intersection`, `inverse` and `differnce`
 * Default engine initialization is same as with Rhai: `Engine::default()`, but if we want to set
 a scripting execution time limit, the initialization is: `Engine::new(execution_limit: Duration)`

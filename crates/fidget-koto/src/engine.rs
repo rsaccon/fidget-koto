@@ -84,6 +84,43 @@ impl Engine {
                                 color_rgb: [u8::MAX; 3],
                             })
                         }
+                        KValue::Tuple(tuple) => {
+                            let mut shape_tree = None;
+                            let mut color_rgb = [u8::MAX; 3];
+                            let f = |a| {
+                                if a < 0.0 {
+                                    0
+                                } else if a > 1.0 {
+                                    255
+                                } else {
+                                    (a * 255.0) as u8
+                                }
+                            };
+                            for (i, val) in tuple.data().iter().enumerate() {
+                                if i == 0 {
+                                    match val {
+                                        KValue::Object(obj) if obj.is_a::<TreeObject>() => {
+                                            let koto_tree = obj.cast::<TreeObject>();
+                                            shape_tree = Some(koto_tree.unwrap().inner());
+                                        }
+                                        _ => (),
+                                    }
+                                }
+                                if i >= 1 && i <= 3 {
+                                    match val {
+                                        KValue::Number(num) => color_rgb[i - 1] = f(f64::from(num)),
+                                        _ => (),
+                                    }
+                                }
+                            }
+                            if let Some(tree) = shape_tree {
+                                self.context
+                                    .lock()
+                                    .unwrap()
+                                    .shapes
+                                    .push(DrawShape { tree, color_rgb })
+                            }
+                        }
                         _ => (),
                     }
                 }
