@@ -1,0 +1,6 @@
+# sfadsfa
+
+# asdf
+
+s1 = sphere 0.6, -0.5, -0.25
+draw2 s1

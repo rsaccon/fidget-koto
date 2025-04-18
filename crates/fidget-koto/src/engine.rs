@@ -6,6 +6,8 @@ use fidget::{Error, context::Tree};
 
 use super::{DrawShape, ScriptContext, TreeObject};
 
+const SHAPES_KEY: &str = "__fidget_shapes__";
+
 /// Engine for evaluating a Koto script with Fidget-specific bindings
 pub struct Engine {
     engine: Koto,
@@ -35,6 +37,11 @@ impl Engine {
                 }),
         );
 
+        koto.prelude().remove("io");
+        koto.prelude().remove("koto");
+        koto.prelude().remove("os");
+        koto.prelude().remove("test");
+
         koto.prelude().insert("x", TreeObject::x());
         koto.prelude().insert("y", TreeObject::y());
         koto.prelude().insert("z", TreeObject::z());
@@ -48,19 +55,44 @@ impl Engine {
             ])))
         });
 
+        koto.prelude()
+            .insert(SHAPES_KEY, KValue::List(KList::default()));
         koto.prelude().insert("fidget", make_fidget_module());
-
-        koto.prelude().remove("io");
-        koto.prelude().remove("koto");
-        koto.prelude().remove("os");
-        koto.prelude().remove("test");
 
         let context = Arc::new(Mutex::new(ScriptContext::new()));
 
-        Self {
+        let mut out = Self {
             engine: koto,
             context,
-        }
+        };
+        out.add_core_fns();
+        out
+    }
+
+    /// Add core functions
+    pub fn add_core_fns(&mut self) {
+        self.engine.prelude().add_fn("draw2", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Object(obj)] => {
+                    if obj.is_a::<TreeObject>() {
+                        // ctx.vm
+                        //     .exports()
+                        //     .insert(key.as_str(), KValue::Object(obj.clone()));
+                        if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
+                            if let KValue::List(list) = list {
+                                println!("inserting shape");
+                                list.data_mut().push(KValue::Object(obj.clone()));
+                            }
+                        }
+                        Ok(KValue::Null)
+                    } else {
+                        unexpected_args("|Tree|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Tree|", &unexpected),
+            }
+        });
     }
 
     /// Executes a full script
@@ -74,56 +106,116 @@ impl Engine {
 
         match self.engine.compile_and_run(script) {
             Ok(_) => {
-                for (_key, val) in self.engine.exports().data().iter() {
-                    match val {
-                        KValue::Object(obj) if obj.is_a::<TreeObject>() => {
-                            let koto_tree = obj.cast::<TreeObject>();
-                            let tree = koto_tree.unwrap().inner();
-                            self.context.lock().unwrap().shapes.push(DrawShape {
-                                tree,
-                                color_rgb: [u8::MAX; 3],
-                            })
-                        }
-                        KValue::Tuple(tuple) => {
-                            let mut shape_tree = None;
-                            let mut color_rgb = [u8::MAX; 3];
-                            let f = |a| {
-                                if a < 0.0 {
-                                    0
-                                } else if a > 1.0 {
-                                    255
-                                } else {
-                                    (a * 255.0) as u8
+                if let Some(list) = self.engine.exports().data_mut().get_mut(SHAPES_KEY) {
+                    println!("found shapes list");
+                    if let KValue::List(list) = list {
+                        for val in list.data().iter() {
+                            println!("found shape");
+                            match val {
+                                KValue::Object(obj) if obj.is_a::<TreeObject>() => {
+                                    let koto_tree = obj.cast::<TreeObject>();
+                                    let tree = koto_tree.unwrap().inner();
+                                    self.context.lock().unwrap().shapes.push(DrawShape {
+                                        tree,
+                                        color_rgb: [u8::MAX; 3],
+                                    })
                                 }
-                            };
-                            for (i, val) in tuple.data().iter().enumerate() {
-                                if i == 0 {
-                                    match val {
-                                        KValue::Object(obj) if obj.is_a::<TreeObject>() => {
-                                            let koto_tree = obj.cast::<TreeObject>();
-                                            shape_tree = Some(koto_tree.unwrap().inner());
+                                KValue::Tuple(tuple) => {
+                                    let mut shape_tree = None;
+                                    let mut color_rgb = [u8::MAX; 3];
+                                    let f = |a| {
+                                        if a < 0.0 {
+                                            0
+                                        } else if a > 1.0 {
+                                            255
+                                        } else {
+                                            (a * 255.0) as u8
                                         }
-                                        _ => (),
+                                    };
+                                    for (i, val) in tuple.data().iter().enumerate() {
+                                        if i == 0 {
+                                            match val {
+                                                KValue::Object(obj) if obj.is_a::<TreeObject>() => {
+                                                    let koto_tree = obj.cast::<TreeObject>();
+                                                    shape_tree = Some(koto_tree.unwrap().inner());
+                                                }
+                                                _ => (),
+                                            }
+                                        }
+                                        if i >= 1 && i <= 3 {
+                                            match val {
+                                                KValue::Number(num) => {
+                                                    color_rgb[i - 1] = f(f64::from(num))
+                                                }
+                                                _ => (),
+                                            }
+                                        }
+                                    }
+                                    if let Some(tree) = shape_tree {
+                                        self.context
+                                            .lock()
+                                            .unwrap()
+                                            .shapes
+                                            .push(DrawShape { tree, color_rgb })
                                     }
                                 }
-                                if i >= 1 && i <= 3 {
-                                    match val {
-                                        KValue::Number(num) => color_rgb[i - 1] = f(f64::from(num)),
-                                        _ => (),
-                                    }
-                                }
-                            }
-                            if let Some(tree) = shape_tree {
-                                self.context
-                                    .lock()
-                                    .unwrap()
-                                    .shapes
-                                    .push(DrawShape { tree, color_rgb })
+                                _ => (),
                             }
                         }
-                        _ => (),
+                        list.data_mut().clear();
                     }
                 }
+
+                // for (_key, val) in self.engine.exports().data().iter() {
+                // match val {
+                //     KValue::Object(obj) if obj.is_a::<TreeObject>() => {
+                //         let koto_tree = obj.cast::<TreeObject>();
+                //         let tree = koto_tree.unwrap().inner();
+                //         self.context.lock().unwrap().shapes.push(DrawShape {
+                //             tree,
+                //             color_rgb: [u8::MAX; 3],
+                //         })
+                //     }
+                //     KValue::Tuple(tuple) => {
+                //         let mut shape_tree = None;
+                //         let mut color_rgb = [u8::MAX; 3];
+                //         let f = |a| {
+                //             if a < 0.0 {
+                //                 0
+                //             } else if a > 1.0 {
+                //                 255
+                //             } else {
+                //                 (a * 255.0) as u8
+                //             }
+                //         };
+                //         for (i, val) in tuple.data().iter().enumerate() {
+                //             if i == 0 {
+                //                 match val {
+                //                     KValue::Object(obj) if obj.is_a::<TreeObject>() => {
+                //                         let koto_tree = obj.cast::<TreeObject>();
+                //                         shape_tree = Some(koto_tree.unwrap().inner());
+                //                     }
+                //                     _ => (),
+                //                 }
+                //             }
+                //             if i >= 1 && i <= 3 {
+                //                 match val {
+                //                     KValue::Number(num) => color_rgb[i - 1] = f(f64::from(num)),
+                //                     _ => (),
+                //                 }
+                //             }
+                //         }
+                //         if let Some(tree) = shape_tree {
+                //             self.context
+                //                 .lock()
+                //                 .unwrap()
+                //                 .shapes
+                //                 .push(DrawShape { tree, color_rgb })
+                //         }
+                //     }
+                //     _ => (),
+                // }
+                // }
             }
             Err(err) => println!("compile error:{}", err),
         }
