@@ -4,11 +4,6 @@ from fidget import square, sqrt
 exported_shapes_counter = { count: 0 }
 
 # TEMPORARY, TODO: make it in rust
-export draw = |shape|
-  exported_shapes_counter.count += 1
-  export { "__fidget_shape_{exported_shapes_counter.count}__": shape }
-
-# TEMPORARY, TODO: make it in rust
 export draw_rgb = |shape, r, g, b|
   exported_shapes_counter.count += 1
   tuple = shape, r, g, b
