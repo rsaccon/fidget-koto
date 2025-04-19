@@ -1,14 +1,5 @@
 from fidget import square, sqrt
 
-# TEMPORARY, TODO: make it in rust
-exported_shapes_counter = { count: 0 }
-
-# TEMPORARY, TODO: make it in rust
-export draw_rgb = |shape, r, g, b|
-  exported_shapes_counter.count += 1
-  tuple = shape, r, g, b
-  export { "__fidget_shape_{exported_shapes_counter.count}__": tuple }
-
 export move = |shape, dx, dy, dz = 0.0|
   ax, ay, az = axes()
   shape.remap_xyz ax - dx, ay - dy, az - dz

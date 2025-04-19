@@ -72,6 +72,7 @@ impl Engine {
 
     /// Add core functions
     pub fn add_core_fns(&mut self) {
+        // !Koto `draw` doc comment for Koto
         self.engine.prelude().add_fn("draw", move |ctx| {
             let args = ctx.args();
             match args {
@@ -80,6 +81,31 @@ impl Engine {
                         if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
                             if let KValue::List(list) = list {
                                 list.data_mut().push(KValue::Object(obj.clone()));
+                            }
+                        }
+                        Ok(KValue::Null)
+                    } else {
+                        unexpected_args("|Tree|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Tree|", &unexpected),
+            }
+        });
+        // !Koto `draw_rgb` comment for Koto
+        self.engine.prelude().add_fn("draw_rgb", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [
+                    KValue::Object(obj),
+                    KValue::Number(_r),
+                    KValue::Number(_g),
+                    KValue::Number(_b),
+                ] => {
+                    if obj.is_a::<TreeObject>() {
+                        if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
+                            if let KValue::List(list) = list {
+                                let tuple = KTuple::from(args);
+                                list.data_mut().push(KValue::Tuple(tuple));
                             }
                         }
                         Ok(KValue::Null)
