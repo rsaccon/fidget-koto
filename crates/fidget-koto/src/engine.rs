@@ -33,7 +33,9 @@ impl Engine {
             KotoSettings::default()
                 .with_execution_limit(execution_limit)
                 .with_module_imported_callback({
-                    move |path| println!("TODO: handle import: {:?}", path)
+                    move |path| {
+                        println!("module import callback - path: {:?}", path);
+                    }
                 }),
         );
 
@@ -72,6 +74,25 @@ impl Engine {
     // TODO: after improuving state handling, add custom koto Error
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, Error> {
         self.context.lock().unwrap().clear();
+
+        // BEGIN Temporary, hardcoded, just for trying out koto modules
+        let simple_module_script = include_str!("../../../models/simple_module.koto");
+        let mut koto_module_loader = Koto::new();
+        if let Err(_) = koto_module_loader.compile_and_run(simple_module_script) {
+            println!("cannot compile simple_module");
+            return Err(Error::BadNode); // TODO: koto compile error
+        }
+        if let Some(radius) = koto_module_loader.exports().data_mut().get_mut("radius") {
+            let module = KMap::with_type("simple_module");
+            module.insert("radius", radius.clone());
+            self.engine
+                .prelude()
+                .insert("simple_module", module.clone());
+            println!("added simple_module");
+        } else {
+            println!("cannot find simple_module");
+        }
+        // END Temporary, hardcoded, just for trying out koto modules
 
         let core_script = include_str!("core.koto");
         if let Err(_) = self.engine.compile_and_run(core_script) {
