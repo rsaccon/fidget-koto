@@ -1,4 +1,4 @@
-use koto::prelude::*;
+use koto::{prelude::*, runtime};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -37,31 +37,24 @@ impl Engine {
                 }),
         );
 
-        koto.prelude().remove("io");
-        koto.prelude().remove("koto");
-        koto.prelude().remove("os");
-        koto.prelude().remove("test");
+        let prelude = koto.prelude();
+        prelude.remove("io");
+        prelude.remove("koto");
+        prelude.remove("os");
+        prelude.remove("test");
 
-        koto.prelude().insert("x", TreeObject::x());
-        koto.prelude().insert("y", TreeObject::y());
-        koto.prelude().insert("z", TreeObject::z());
+        prelude.insert("x", TreeObject::x());
+        prelude.insert("y", TreeObject::y());
+        prelude.insert("z", TreeObject::z());
+        prelude.insert("axes", axes);
 
-        koto.prelude().add_fn("axes", move |_ctx| {
-            let (x, y, z) = Tree::axes();
-            Ok(KValue::Tuple(KTuple::from(vec![
-                KValue::Object(TreeObject::from(x).into()),
-                KValue::Object(TreeObject::from(y).into()),
-                KValue::Object(TreeObject::from(z).into()),
-            ])))
-        });
+        prelude.insert("fidget", make_fidget_module());
 
         koto.exports()
             .data_mut()
             .insert(ValueKey::from(SHAPES_KEY), KValue::List(KList::default()));
-        koto.prelude().insert("fidget", make_fidget_module());
 
         let context = Arc::new(Mutex::new(ScriptContext::new()));
-
         let mut out = Self {
             engine: koto,
             context,
@@ -70,61 +63,19 @@ impl Engine {
         out
     }
 
-    /// Add core functions
-    pub fn add_core_fns(&mut self) {
-        // !Koto `draw` doc comment for Koto
-        self.engine.prelude().add_fn("draw", move |ctx| {
-            let args = ctx.args();
-            match args {
-                [KValue::Object(obj)] => {
-                    if obj.is_a::<TreeObject>() {
-                        if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
-                            if let KValue::List(list) = list {
-                                list.data_mut().push(KValue::Object(obj.clone()));
-                            }
-                        }
-                        Ok(KValue::Null)
-                    } else {
-                        unexpected_args("|Tree|", &args)
-                    }
-                }
-                unexpected => unexpected_args("|Tree|", &unexpected),
-            }
-        });
-        // !Koto `draw_rgb` comment for Koto
-        self.engine.prelude().add_fn("draw_rgb", move |ctx| {
-            let args = ctx.args();
-            match args {
-                [
-                    KValue::Object(obj),
-                    KValue::Number(_r),
-                    KValue::Number(_g),
-                    KValue::Number(_b),
-                ] => {
-                    if obj.is_a::<TreeObject>() {
-                        if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
-                            if let KValue::List(list) = list {
-                                let tuple = KTuple::from(args);
-                                list.data_mut().push(KValue::Tuple(tuple));
-                            }
-                        }
-                        Ok(KValue::Null)
-                    } else {
-                        unexpected_args("|Tree|", &args)
-                    }
-                }
-                unexpected => unexpected_args("|Tree|", &unexpected),
-            }
-        });
+    fn add_core_fns(&mut self) {
+        self.engine.prelude().insert("draw", draw);
+        self.engine.prelude().insert("draw_rgb", draw_rgb);
     }
 
     /// Executes a full script
+    // TODO: after improuving state handling, add custom koto Error
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, Error> {
         self.context.lock().unwrap().clear();
 
         let core_script = include_str!("core.koto");
         if let Err(_) = self.engine.compile_and_run(core_script) {
-            return Err(Error::BadNode);
+            return Err(Error::BadNode); // TODO: koto compile error
         }
 
         match self.engine.compile_and_run(script) {
@@ -187,7 +138,10 @@ impl Engine {
                     }
                 }
             }
-            Err(err) => println!("compile error:{}", err),
+            Err(err) => {
+                // TODO: return with Koto compile error
+                println!("compile error:{}", err)
+            }
         }
 
         // Steal the ScriptContext's contents
@@ -206,6 +160,62 @@ impl Engine {
             Ok(_) => Err(Error::BadNode),
             Err(_) => Err(Error::BadNode),
         }
+    }
+}
+
+/// Koto axes doc: TODO
+fn axes(_ctx: &mut CallContext) -> runtime::Result<KValue> {
+    let (x, y, z) = Tree::axes();
+    Ok(KValue::Tuple(KTuple::from(vec![
+        KValue::Object(TreeObject::from(x).into()),
+        KValue::Object(TreeObject::from(y).into()),
+        KValue::Object(TreeObject::from(z).into()),
+    ])))
+}
+
+/// Koto draw doc: TODO
+fn draw(ctx: &mut CallContext) -> runtime::Result<KValue> {
+    let args = ctx.args();
+    match args {
+        [KValue::Object(obj)] => {
+            if obj.is_a::<TreeObject>() {
+                if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
+                    if let KValue::List(list) = list {
+                        list.data_mut().push(KValue::Object(obj.clone()));
+                    }
+                }
+                Ok(KValue::Null)
+            } else {
+                unexpected_args("|Tree|", &args)
+            }
+        }
+        unexpected => unexpected_args("|Tree|", &unexpected),
+    }
+}
+
+/// Koto draw_rgb doc: TODO
+fn draw_rgb(ctx: &mut CallContext) -> runtime::Result<KValue> {
+    let args = ctx.args();
+    match args {
+        [
+            KValue::Object(obj),
+            KValue::Number(_r),
+            KValue::Number(_g),
+            KValue::Number(_b),
+        ] => {
+            if obj.is_a::<TreeObject>() {
+                if let Some(list) = ctx.vm.exports().data_mut().get_mut(SHAPES_KEY) {
+                    if let KValue::List(list) = list {
+                        let tuple = KTuple::from(args);
+                        list.data_mut().push(KValue::Tuple(tuple));
+                    }
+                }
+                Ok(KValue::Null)
+            } else {
+                unexpected_args("|Tree|", &args)
+            }
+        }
+        unexpected => unexpected_args("|Tree|", &unexpected),
     }
 }
 
