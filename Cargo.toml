@@ -26,5 +26,5 @@ zerocopy = { version = "0.8", features = ["derive"] }
 fidget-koto = { path = "crates/fidget-koto" }
 
 [patch.crates-io]
-koto = { git = "https://github.com/koto-lang/koto" }
-fidget = { git = "https://github.com/mkeeter/fidget" }
+koto = { git = "https://github.com/koto-lang/koto", rev = "2dd86d4f6bf1118056824dbfb3aeaf717e5cb9e2" }
+fidget = { git = "https://github.com/mkeeter/fidget", rev = "36c7b135021caf7a3f932e2efbb9bf45b98c12da" }

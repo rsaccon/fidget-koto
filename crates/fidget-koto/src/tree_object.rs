@@ -63,6 +63,16 @@ impl KotoObject for TreeObject {
         binary_op!(self, other, modulo)
     }
 
+    fn power(&self, other: &KValue) -> runtime::Result<KValue> {
+        match other {
+            KValue::Number(num) => {
+                let other = i64::from(num);
+                Ok(KValue::Object(Self(self.inner().pow(other)).into()))
+            }
+            unexpected => unexpected_type("Number", unexpected),
+        }
+    }
+
     fn add_assign(&mut self, other: &KValue) -> runtime::Result<()> {
         compound_assign_op!(self, other, add)
     }
@@ -81,6 +91,17 @@ impl KotoObject for TreeObject {
 
     fn remainder_assign(&mut self, other: &KValue) -> runtime::Result<()> {
         compound_assign_op!(self, other, modulo)
+    }
+
+    fn power_assign(&mut self, other: &KValue) -> runtime::Result<()> {
+        match other {
+            KValue::Number(num) => {
+                let other = i64::from(num);
+                self.0 = self.inner().pow(other);
+                Ok(())
+            }
+            unexpected => unexpected_type("Object or Number", unexpected),
+        }
     }
 
     fn less(&self, other: &KValue) -> runtime::Result<bool> {

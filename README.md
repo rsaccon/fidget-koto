@@ -24,6 +24,10 @@ or build it from scratch by using fidget `Tree` operations as with Rhai:
 ```Koto
 draw (x.square() + y.square() + z.square()).sqrt() - 1
 ```
+or with operators where possible:
+```Koto
+draw (x^2 + y^2 + z^2)).sqrt() - 1
+```
 or from scratch, but with importing fidget `Tree` operations into global namespace:
 ```Koto
 from fidget import square, sqrt
