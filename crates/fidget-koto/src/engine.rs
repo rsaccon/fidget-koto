@@ -2,7 +2,7 @@ use koto::{prelude::*, runtime};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use fidget::{Error, context::Tree};
+use fidget::context::Tree;
 
 use super::{DrawShape, ScriptContext, TreeObject};
 
@@ -118,7 +118,7 @@ impl Engine {
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, koto::Error> {
         self.context.lock().unwrap().clear();
 
-        // BEGIN Temporary, hardcoded, just for trying out koto modules
+        // BEGIN temporary, everything hardcoded, just for trying out koto modules import
         let simple_module_script = include_str!("../../../models/simple_module.koto");
         let mut koto_module_loader = Koto::new();
         if let Err(err) = koto_module_loader.compile_and_run(simple_module_script) {
@@ -134,7 +134,7 @@ impl Engine {
         } else {
             println!("cannot find simple_module");
         }
-        // END Temporary, hardcoded, just for trying out koto modules
+        // END temporary
 
         let core_script = include_str!("core.koto");
         if let Err(err) = self.engine.compile_and_run(core_script) {
@@ -154,15 +154,15 @@ impl Engine {
     }
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
-    pub fn eval(&mut self, script: &str) -> Result<Tree, Error> {
+    pub fn eval(&mut self, script: &str) -> Result<Tree, fidget::Error> {
         match self.engine.compile_and_run(script) {
             Ok(KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
                 let koto_tree = obj.cast::<TreeObject>();
                 let tree = koto_tree.unwrap().inner();
                 Ok(tree)
             }
-            Ok(_) => Err(Error::BadNode),
-            Err(_) => Err(Error::BadNode),
+            Ok(_) => Err(fidget::Error::BadNode),
+            Err(_) => Err(fidget::Error::BadNode), // TODO: fidget compilation error
         }
     }
 }
