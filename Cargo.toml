@@ -22,6 +22,7 @@ env_logger = "0.11"
 log = "0.4"
 nalgebra = { version = "0.33", features = ["serde-serialize"] }
 notify = "8.0"
+thiserror = "2"
 zerocopy = { version = "0.8", features = ["derive"] }
 fidget-koto = { path = "crates/fidget-koto" }
 

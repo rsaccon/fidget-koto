@@ -115,15 +115,14 @@ impl Engine {
 
     /// Executes a full script
     // TODO: after improuving state handling, add custom koto Error
-    pub fn run(&mut self, script: &str) -> Result<ScriptContext, Error> {
+    pub fn run(&mut self, script: &str) -> Result<ScriptContext, koto::Error> {
         self.context.lock().unwrap().clear();
 
         // BEGIN Temporary, hardcoded, just for trying out koto modules
         let simple_module_script = include_str!("../../../models/simple_module.koto");
         let mut koto_module_loader = Koto::new();
-        if let Err(_) = koto_module_loader.compile_and_run(simple_module_script) {
-            println!("cannot compile simple_module");
-            return Err(Error::BadNode); // TODO: koto compile error
+        if let Err(err) = koto_module_loader.compile_and_run(simple_module_script) {
+            return Err(err);
         }
         if let Some(radius) = koto_module_loader.exports().data_mut().get_mut("radius") {
             let module = KMap::with_type("simple_module");
@@ -138,15 +137,14 @@ impl Engine {
         // END Temporary, hardcoded, just for trying out koto modules
 
         let core_script = include_str!("core.koto");
-        if let Err(_) = self.engine.compile_and_run(core_script) {
-            return Err(Error::BadNode); // TODO: koto compile error
+        if let Err(err) = self.engine.compile_and_run(core_script) {
+            return Err(err);
         }
 
         match self.engine.compile_and_run(script) {
             Ok(_) => (),
             Err(err) => {
-                // TODO: return with Koto compile error
-                println!("compile error:{}", err)
+                return Err(err);
             }
         }
 
