@@ -107,6 +107,26 @@ impl Engine {
             }
         });
 
+        prelude.add_fn("_union", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_intersection", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_inverse", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_difference", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
         Self {
             engine: koto,
             context,
@@ -114,7 +134,6 @@ impl Engine {
     }
 
     /// Executes a full script
-    // TODO: after improuving state handling, add custom koto Error
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, koto::Error> {
         self.context.lock().unwrap().clear();
 
@@ -162,7 +181,7 @@ impl Engine {
                 Ok(tree)
             }
             Ok(_) => Err(fidget::Error::BadNode),
-            Err(_) => Err(fidget::Error::BadNode), // TODO: fidget compilation error
+            Err(_) => Err(fidget::Error::BadNode), // TODO: koto compilation error
         }
     }
 }

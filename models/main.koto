@@ -1,0 +1,5 @@
+from foo1 import aa
+from foo2 import bb
+
+cc = aa + bb
+dd = cc

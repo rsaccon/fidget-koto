@@ -1,4 +1,7 @@
 s1 = sphere 0.6, -0.5, -0.25
-# draw s1
+draw s1
 b = s1
 draw_rgb s1, 1, 0, 0
+fn = ||
+  1
+fn 2

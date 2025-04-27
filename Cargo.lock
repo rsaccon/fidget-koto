@@ -1400,7 +1400,8 @@ dependencies = [
 [[package]]
 name = "fidget"
 version = "0.3.6"
-source = "git+https://github.com/mkeeter/fidget?rev=36c7b135021caf7a3f932e2efbb9bf45b98c12da#36c7b135021caf7a3f932e2efbb9bf45b98c12da"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5725b605afdaa82f04519a15760ffa65ab142b52f3516e00e173ebbfa7159ef1"
 dependencies = [
  "arrayvec",
  "bimap",
@@ -4864,33 +4865,8 @@ dependencies = [
 [[package]]
 name = "workspace-hack"
 version = "0.1.0"
-source = "git+https://github.com/mkeeter/fidget?rev=36c7b135021caf7a3f932e2efbb9bf45b98c12da#36c7b135021caf7a3f932e2efbb9bf45b98c12da"
-dependencies = [
- "ahash",
- "anstream",
- "approx",
- "bitflags 2.9.0",
- "bytemuck",
- "byteorder",
- "clap",
- "clap_builder",
- "either",
- "getrandom 0.2.16",
- "hashbrown",
- "image",
- "libc",
- "log",
- "memchr",
- "num-traits",
- "once_cell",
- "proc-macro2",
- "quote",
- "regex",
- "regex-automata",
- "serde",
- "syn",
- "zerocopy 0.7.35",
-]
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "beffa227304dbaea3ad6a06ac674f9bc83a3dec3b7f63eeb442de37e7cb6bb01"
 
 [[package]]
 name = "write16"
@@ -5112,7 +5088,6 @@ version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
 dependencies = [
- "byteorder",
  "zerocopy-derive 0.7.35",
 ]
 
