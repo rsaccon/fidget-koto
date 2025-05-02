@@ -16,20 +16,20 @@ The `models` folder has some examples (all Rhai fidget models have been ported t
 
 ## Sphere Example
 Either use the built-in implementation from the core library:
-```Koto
+```koto
 # sphere with radius=1.0, x=0.0 (default), y=0.0 (default), z=0.0 (default)
 draw sphere 1
 ```
 or build it from scratch by using fidget `Tree` operations as with Rhai:
-```Koto
+```koto
 draw (x.square() + y.square() + z.square()).sqrt() - 1
 ```
 or with operators where possible:
-```Koto
+```koto
 draw (x^2 + y^2 + z^2)).sqrt() - 1
 ```
 or from scratch, but with importing fidget `Tree` operations into global namespace:
-```Koto
+```koto
 from fidget import square, sqrt
 
 draw sqrt(square(x) + square(y) + square(z)) - 1
