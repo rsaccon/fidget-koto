@@ -56,9 +56,11 @@ use fidget::{Error, context::Tree};
 mod macros;
 
 mod engine;
+mod shapes;
 mod tree_object;
 
 pub use engine::Engine;
+pub use shapes::Sphere;
 pub use tree_object::TreeObject;
 
 //////////////////////////////////////////////////////////////////////////////////

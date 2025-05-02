@@ -2,9 +2,9 @@ use koto::{prelude::*, runtime};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use fidget::context::Tree;
-
 use super::{DrawShape, ScriptContext, TreeObject};
+
+type FidgetTree = fidget::context::Tree;
 
 /// Engine for evaluating a Koto script with Fidget-specific bindings
 pub struct Engine {
@@ -107,6 +107,32 @@ impl Engine {
             }
         });
 
+        prelude.add_fn("_circle", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_sphere", move |ctx| {
+            // export sphere = |radius, cx = 0.0, cy = 0.0, cz = 0.0|
+            //   ax, ay, az = axes()
+            //   sqrt((ax - cx)^2 + (ay - cy)^2 + (az - cz)^2) - radius
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_move", move |ctx| {
+            // export move = |shape, dx, dy, dz = 0.0|
+            //   ax, ay, az = axes()
+            //   shape.remap_xyz ax - dx, ay - dy, az - dz
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
+        prelude.add_fn("_scale", move |ctx| {
+            let _args = ctx.args();
+            Ok(KValue::Null)
+        });
+
         prelude.add_fn("_union", move |ctx| {
             let _args = ctx.args();
             Ok(KValue::Null)
@@ -173,7 +199,7 @@ impl Engine {
     }
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
-    pub fn eval(&mut self, script: &str) -> Result<Tree, fidget::Error> {
+    pub fn eval(&mut self, script: &str) -> Result<FidgetTree, fidget::Error> {
         match self.engine.compile_and_run(script) {
             Ok(KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
                 let koto_tree = obj.cast::<TreeObject>();
@@ -188,7 +214,7 @@ impl Engine {
 
 /// Koto axes doc: TODO
 fn axes(_ctx: &mut CallContext) -> runtime::Result<KValue> {
-    let (x, y, z) = Tree::axes();
+    let (x, y, z) = FidgetTree::axes();
     Ok(KValue::Tuple(KTuple::from(vec![
         KValue::Object(TreeObject::from(x).into()),
         KValue::Object(TreeObject::from(y).into()),
@@ -237,19 +263,19 @@ fn make_fidget_module() -> KMap {
                     }
                     (KValue::Object(obj), KValue::Number(num)) if obj.is_a::<TreeObject>() => {
                         let tree_a = obj.cast::<TreeObject>()?.inner();
-                        let tree_b = Tree::constant(f64::from(num));
+                        let tree_b = FidgetTree::constant(f64::from(num));
                         let result = tree_a.$name(tree_b);
                         Ok(TreeObject::from(result).into())
                     }
                     (KValue::Number(num), KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
-                        let tree_a = Tree::constant(f64::from(num));
+                        let tree_a = FidgetTree::constant(f64::from(num));
                         let tree_b = obj.cast::<TreeObject>()?.inner();
                         let result = tree_a.$name(tree_b);
                         Ok(TreeObject::from(result).into())
                     }
                     (KValue::Number(num1), KValue::Number(num2)) => {
-                        let tree_a = Tree::constant(f64::from(num1));
-                        let tree_b = Tree::constant(f64::from(num2));
+                        let tree_a = FidgetTree::constant(f64::from(num1));
+                        let tree_b = FidgetTree::constant(f64::from(num2));
                         let result = tree_a.$name(tree_b);
                         Ok(TreeObject::from(result).into())
                     }

@@ -40,7 +40,7 @@ TODO
 
 ```koto
 # TODO
-my_x, my_y, my_z = axes
+ax, ay, az = axes()
 ```
 
 ## draw
