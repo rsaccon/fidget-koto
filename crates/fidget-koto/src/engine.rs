@@ -43,11 +43,7 @@ impl Engine {
         prelude.remove("os");
         prelude.remove("test");
 
-        prelude.insert("x", TreeObject::x());
-        prelude.insert("y", TreeObject::y());
-        prelude.insert("z", TreeObject::z());
         prelude.insert("axes", axes);
-
         prelude.insert("fidget", make_fidget_module());
 
         let context = Arc::new(Mutex::new(ScriptContext::new()));
@@ -163,6 +159,7 @@ impl Engine {
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, koto::Error> {
         self.context.lock().unwrap().clear();
 
+        //
         // BEGIN temporary, everything hardcoded, just for trying out koto modules import
         let simple_module_script = include_str!("../../../models/simple_module.koto");
         let mut koto_module_loader = Koto::new();
@@ -180,6 +177,11 @@ impl Engine {
             println!("cannot find simple_module");
         }
         // END temporary
+        //
+
+        self.engine.prelude().insert("x", TreeObject::x());
+        self.engine.prelude().insert("y", TreeObject::y());
+        self.engine.prelude().insert("z", TreeObject::z());
 
         let core_script = include_str!("core.koto");
         if let Err(err) = self.engine.compile_and_run(core_script) {
@@ -200,6 +202,10 @@ impl Engine {
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
     pub fn eval(&mut self, script: &str) -> Result<FidgetTree, fidget::Error> {
+        self.engine.prelude().insert("x", TreeObject::x());
+        self.engine.prelude().insert("y", TreeObject::y());
+        self.engine.prelude().insert("z", TreeObject::z());
+
         match self.engine.compile_and_run(script) {
             Ok(KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
                 let koto_tree = obj.cast::<TreeObject>();
