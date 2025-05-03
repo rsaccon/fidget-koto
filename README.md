@@ -10,9 +10,13 @@ The `models` folder has some examples (all Rhai fidget models have been ported t
 
 ## Differences to fidget Rhai scripting:
 * core library currently only provides: `move`, `sphere`, `union`, `intersection`, `inverse` and `differnce`
+* no `draw_rgb`, just use `draw` with optionally adding the color arguments `r`, `g` and `b`.
 * Engine initialization
   * Default: `Engine::default()`
-  * With scripting execution time limit: `Engine::new(execution_limit: Duration)`
+  * Custom: `Engine::new(...)`. The following options are available:
+    * With automatically imported all `fidget` helper functions
+    * `import_fidget: bool` for importing all `fidget` helper functions
+    * `execution_limit: Duration` for scripting execution time limit
 
 ## Sphere Example
 Either use the built-in implementation from the core library:

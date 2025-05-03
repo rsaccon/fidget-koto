@@ -6,15 +6,25 @@ use super::{DrawShape, ScriptContext, TreeObject};
 
 type FidgetTree = fidget::context::Tree;
 
+/// Engine initialization setting
+pub struct EngineSettings {
+    import_fidget: bool,
+    execution_limit: Duration,
+}
+
 /// Engine for evaluating a Koto script with Fidget-specific bindings
 pub struct Engine {
+    settings: EngineSettings,
     engine: Koto,
     context: Arc<Mutex<ScriptContext>>,
 }
 
 impl Default for Engine {
     fn default() -> Self {
-        Self::new(Duration::from_secs(1))
+        Self::new(EngineSettings {
+            import_fidget: false,
+            execution_limit: Duration::from_secs(1),
+        })
     }
 }
 
@@ -26,10 +36,10 @@ impl Engine {
     ///
     /// In addition, it includes everything in [`core.koto`](fidget_koto::core),
     /// which is effectively our standard library.
-    pub fn new(execution_limit: Duration) -> Self {
+    pub fn new(settings: EngineSettings) -> Self {
         let koto = Koto::with_settings(
             KotoSettings::default()
-                .with_execution_limit(execution_limit)
+                .with_execution_limit(settings.execution_limit)
                 .with_module_imported_callback({
                     move |path| {
                         println!("module import callback - path: {:?}", path);
@@ -44,7 +54,16 @@ impl Engine {
         prelude.remove("test");
 
         prelude.insert("axes", axes);
-        prelude.insert("fidget", make_fidget_module());
+
+        let fidget_modules = make_fidget_module();
+        if settings.import_fidget {
+            for (_key, _value) in fidget_modules.data().iter() {
+                // TODO: make this work
+                // prelude.insert(String::from(key).as_str(), value);
+            }
+        } else {
+            prelude.insert("fidget", fidget_modules);
+        }
 
         let context = Arc::new(Mutex::new(ScriptContext::new()));
 
@@ -64,14 +83,6 @@ impl Engine {
                         unexpected_args("|Tree|", &args)
                     }
                 }
-                unexpected => unexpected_args("|Tree|", &unexpected),
-            }
-        });
-
-        let context_clone = context.clone();
-        prelude.add_fn("draw_rgb", move |ctx| {
-            let args = ctx.args();
-            match args {
                 [
                     KValue::Object(obj),
                     KValue::Number(r),
@@ -150,6 +161,7 @@ impl Engine {
         });
 
         Self {
+            settings,
             engine: koto,
             context,
         }
@@ -187,6 +199,8 @@ impl Engine {
         if let Err(err) = self.engine.compile_and_run(core_script) {
             return Err(err);
         }
+
+        if self.settings.import_fidget {}
 
         match self.engine.compile_and_run(script) {
             Ok(_) => (),
