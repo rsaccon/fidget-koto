@@ -13,7 +13,7 @@ The `models` folder has some examples (all Rhai fidget models have been ported t
 * no `draw_rgb`, just use `draw` with optionally adding the color arguments `r`, `g` and `b`.
 * Engine initialization
   * Default: `Engine::default()`
-  * Custom: `Engine::new(...)`. The following options are available:
+  * Custom: `Engine::new(settings: EngineSettings)`. The following options are available:
     * `import_fidget: bool` for automatically importing all `fidget` helper functions - WIP
     * `execution_limit: Duration` for scripting execution time limit
 
