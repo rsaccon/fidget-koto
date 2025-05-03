@@ -14,8 +14,7 @@ The `models` folder has some examples (all Rhai fidget models have been ported t
 * Engine initialization
   * Default: `Engine::default()`
   * Custom: `Engine::new(...)`. The following options are available:
-    * With automatically imported all `fidget` helper functions
-    * `import_fidget: bool` for importing all `fidget` helper functions
+    * `import_fidget: bool` for automatically importing all `fidget` helper functions - WIP
     * `execution_limit: Duration` for scripting execution time limit
 
 ## Sphere Example
