@@ -55,14 +55,12 @@ impl Engine {
 
         prelude.insert("axes", axes);
 
-        let fidget_modules = make_fidget_module();
         if settings.import_fidget {
-            for (_key, _value) in fidget_modules.data().iter() {
-                // TODO: make this work
-                // prelude.insert(String::from(key).as_str(), value);
-            }
+            let module = KMap::with_type("fidget");
+            add_fidget_module_or_helpers(&module);
+            prelude.insert("fidget", module);
         } else {
-            prelude.insert("fidget", fidget_modules);
+            add_fidget_module_or_helpers(&prelude);
         }
 
         let context = Arc::new(Mutex::new(ScriptContext::new()));
@@ -242,9 +240,7 @@ fn axes(_ctx: &mut CallContext) -> runtime::Result<KValue> {
     ])))
 }
 
-fn make_fidget_module() -> KMap {
-    let module = KMap::with_type("fidget");
-
+fn add_fidget_module_or_helpers(module: &KMap) {
     macro_rules! add_unary_fn {
         ($name_string:literal, $name:ident) => {
             module.add_fn($name_string, move |ctx| {
@@ -327,6 +323,4 @@ fn make_fidget_module() -> KMap {
     add_unary_fn!("ceil", ceil);
     add_unary_fn!("floor", floor);
     add_unary_fn!("round", round);
-
-    module
 }
