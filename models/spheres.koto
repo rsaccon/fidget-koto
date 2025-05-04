@@ -1,2 +1,2 @@
-draw sphere 0.6, -0.5
-draw sphere 0.6, 0.5
+draw sphere 0.6, -0.5, 0.0, 0.0
+draw sphere 0.6, 0.5, 0.0, 0.0

@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use fidget::context::Tree;
 
-use super::{DrawShape, ScriptContext, Sphere, TreeObject};
+use super::{Circle, DrawShape, ScriptContext, Sphere, TreeObject};
 
 /// Engine initialization settings
 pub struct EngineSettings {
@@ -77,6 +77,15 @@ impl Engine {
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
+                    } else if obj.is_a::<Circle>() {
+                        let koto_circle = obj.cast::<Circle>();
+                        let fidget_circle = koto_circle.unwrap().inner();
+                        let fidget_tree = Tree::from(fidget_circle);
+                        context_clone.lock().unwrap().shapes.push(DrawShape {
+                            tree: fidget_tree,
+                            color_rgb: [u8::MAX; 3],
+                        });
+                        Ok(KValue::Null)
                     } else if obj.is_a::<Sphere>() {
                         let koto_sphere = obj.cast::<Sphere>();
                         let fidget_sphere = koto_sphere.unwrap().inner();
@@ -113,6 +122,25 @@ impl Engine {
                             color_rgb: [f(r), f(g), f(b)],
                         });
                         Ok(KValue::Null)
+                    } else if obj.is_a::<Circle>() {
+                        let koto_circle = obj.cast::<Circle>();
+                        let fidget_circle = koto_circle.unwrap().inner();
+                        let fidget_tree = Tree::from(fidget_circle);
+                        let f = |a| {
+                            let a = f64::from(a);
+                            if a < 0.0 {
+                                0
+                            } else if a > 1.0 {
+                                255
+                            } else {
+                                (a * 255.0) as u8
+                            }
+                        };
+                        context_clone.lock().unwrap().shapes.push(DrawShape {
+                            tree: fidget_tree,
+                            color_rgb: [f(r), f(g), f(b)],
+                        });
+                        Ok(KValue::Null)
                     } else if obj.is_a::<Sphere>() {
                         let koto_sphere = obj.cast::<Sphere>();
                         let fidget_sphere = koto_sphere.unwrap().inner();
@@ -140,9 +168,23 @@ impl Engine {
             }
         });
 
-        prelude.add_fn("_circle", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("circle", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Number(radius)] => {
+                    let circle = Circle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
+                    Ok(KValue::Object(KObject::from(circle)))
+                }
+                [
+                    KValue::Number(radius),
+                    KValue::Number(cx),
+                    KValue::Number(cy),
+                ] => {
+                    let circle = Circle::new(f64::from(radius), f64::from(cx), f64::from(cy));
+                    Ok(KValue::Object(KObject::from(circle)))
+                }
+                unexpected => unexpected_args("|Circle|", &unexpected),
+            }
         });
 
         prelude.add_fn("sphere", move |ctx| {
