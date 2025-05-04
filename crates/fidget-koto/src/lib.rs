@@ -56,12 +56,12 @@ use fidget::{Error, context::Tree};
 mod macros;
 
 mod engine;
+mod ktree;
 mod shapes;
-mod tree_object;
 
 pub use engine::Engine;
-pub use shapes::{Circle, Sphere};
-pub use tree_object::TreeObject;
+pub use ktree::KTree;
+pub use shapes::{KCircle, KSphere};
 
 //////////////////////////////////////////////////////////////////////////////////
 

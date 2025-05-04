@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use fidget::context::Tree;
 
-use super::{Circle, DrawShape, ScriptContext, Sphere, TreeObject};
+use super::{DrawShape, KCircle, KSphere, KTree, ScriptContext};
 
 /// Engine initialization settings
 pub struct EngineSettings {
@@ -70,25 +70,25 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj)] => {
-                    if obj.is_a::<TreeObject>() {
-                        let koto_tree = obj.cast::<TreeObject>();
+                    if obj.is_a::<KTree>() {
+                        let k_tree = obj.cast::<KTree>();
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: koto_tree.unwrap().inner(),
+                            tree: k_tree.unwrap().inner(),
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
-                    } else if obj.is_a::<Circle>() {
-                        let koto_circle = obj.cast::<Circle>();
-                        let fidget_circle = koto_circle.unwrap().inner();
-                        let fidget_tree = Tree::from(fidget_circle);
+                    } else if obj.is_a::<KCircle>() {
+                        let k_circle = obj.cast::<KCircle>();
+                        let circle = k_circle.unwrap().inner();
+                        let tree = Tree::from(circle);
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: fidget_tree,
+                            tree,
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
-                    } else if obj.is_a::<Sphere>() {
-                        let koto_sphere = obj.cast::<Sphere>();
-                        let fidget_sphere = koto_sphere.unwrap().inner();
+                    } else if obj.is_a::<KSphere>() {
+                        let k_sphere = obj.cast::<KSphere>();
+                        let fidget_sphere = k_sphere.unwrap().inner();
                         let fidget_tree = Tree::from(fidget_sphere);
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree: fidget_tree,
@@ -105,8 +105,8 @@ impl Engine {
                     KValue::Number(g),
                     KValue::Number(b),
                 ] => {
-                    if obj.is_a::<TreeObject>() {
-                        let koto_tree = obj.cast::<TreeObject>();
+                    if obj.is_a::<KTree>() {
+                        let k_tree = obj.cast::<KTree>();
                         let f = |a| {
                             let a = f64::from(a);
                             if a < 0.0 {
@@ -118,14 +118,14 @@ impl Engine {
                             }
                         };
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: koto_tree.unwrap().inner(),
+                            tree: k_tree.unwrap().inner(),
                             color_rgb: [f(r), f(g), f(b)],
                         });
                         Ok(KValue::Null)
-                    } else if obj.is_a::<Circle>() {
-                        let koto_circle = obj.cast::<Circle>();
-                        let fidget_circle = koto_circle.unwrap().inner();
-                        let fidget_tree = Tree::from(fidget_circle);
+                    } else if obj.is_a::<KCircle>() {
+                        let k_circle = obj.cast::<KCircle>();
+                        let circle = k_circle.unwrap().inner();
+                        let tree = Tree::from(circle);
                         let f = |a| {
                             let a = f64::from(a);
                             if a < 0.0 {
@@ -137,13 +137,13 @@ impl Engine {
                             }
                         };
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: fidget_tree,
+                            tree,
                             color_rgb: [f(r), f(g), f(b)],
                         });
                         Ok(KValue::Null)
-                    } else if obj.is_a::<Sphere>() {
-                        let koto_sphere = obj.cast::<Sphere>();
-                        let fidget_sphere = koto_sphere.unwrap().inner();
+                    } else if obj.is_a::<KSphere>() {
+                        let k_sphere = obj.cast::<KSphere>();
+                        let fidget_sphere = k_sphere.unwrap().inner();
                         let fidget_tree = Tree::from(fidget_sphere);
                         let f = |a| {
                             let a = f64::from(a);
@@ -172,7 +172,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let circle = Circle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
+                    let circle = KCircle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
                     Ok(KValue::Object(KObject::from(circle)))
                 }
                 [
@@ -180,7 +180,7 @@ impl Engine {
                     KValue::Number(cx),
                     KValue::Number(cy),
                 ] => {
-                    let circle = Circle::new(f64::from(radius), f64::from(cx), f64::from(cy));
+                    let circle = KCircle::new(f64::from(radius), f64::from(cx), f64::from(cy));
                     Ok(KValue::Object(KObject::from(circle)))
                 }
                 unexpected => unexpected_args("|Circle|", &unexpected),
@@ -191,7 +191,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let sphere = Sphere::new(
+                    let sphere = KSphere::new(
                         f64::from(radius),
                         f64::from(0.0),
                         f64::from(0.0),
@@ -205,7 +205,7 @@ impl Engine {
                     KValue::Number(cy),
                     KValue::Number(cz),
                 ] => {
-                    let sphere = Sphere::new(
+                    let sphere = KSphere::new(
                         f64::from(radius),
                         f64::from(cx),
                         f64::from(cy),
@@ -296,9 +296,9 @@ impl Engine {
         // END Experiment
         ///////////////////////////////////////////////////////////////////////
 
-        self.engine.prelude().insert("x", TreeObject::x());
-        self.engine.prelude().insert("y", TreeObject::y());
-        self.engine.prelude().insert("z", TreeObject::z());
+        self.engine.prelude().insert("x", KTree::x());
+        self.engine.prelude().insert("y", KTree::y());
+        self.engine.prelude().insert("z", KTree::z());
 
         let core_script = include_str!("core.koto");
         if let Err(err) = self.engine.compile_and_run(core_script) {
@@ -321,14 +321,14 @@ impl Engine {
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
     pub fn eval(&mut self, script: &str) -> Result<Tree, fidget::Error> {
-        self.engine.prelude().insert("x", TreeObject::x());
-        self.engine.prelude().insert("y", TreeObject::y());
-        self.engine.prelude().insert("z", TreeObject::z());
+        self.engine.prelude().insert("x", KTree::x());
+        self.engine.prelude().insert("y", KTree::y());
+        self.engine.prelude().insert("z", KTree::z());
 
         match self.engine.compile_and_run(script) {
-            Ok(KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
-                let koto_tree = obj.cast::<TreeObject>();
-                let tree = koto_tree.unwrap().inner();
+            Ok(KValue::Object(obj)) if obj.is_a::<KTree>() => {
+                let k_tree = obj.cast::<KTree>();
+                let tree = k_tree.unwrap().inner();
                 Ok(tree)
             }
             Ok(_) => Err(fidget::Error::BadNode),
@@ -341,9 +341,9 @@ impl Engine {
 fn axes(_ctx: &mut CallContext) -> runtime::Result<KValue> {
     let (x, y, z) = Tree::axes();
     Ok(KValue::Tuple(KTuple::from(vec![
-        KValue::Object(TreeObject::from(x).into()),
-        KValue::Object(TreeObject::from(y).into()),
-        KValue::Object(TreeObject::from(z).into()),
+        KValue::Object(KTree::from(x).into()),
+        KValue::Object(KTree::from(y).into()),
+        KValue::Object(KTree::from(z).into()),
     ])))
 }
 
@@ -356,10 +356,10 @@ fn add_fidget_module_or_fns(module: &KMap) {
                     return unexpected_args("1 argument: Tree | Number", args);
                 }
                 match &args[0] {
-                    KValue::Object(obj) if obj.is_a::<TreeObject>() => {
-                        let tree = obj.cast::<TreeObject>()?.inner();
+                    KValue::Object(obj) if obj.is_a::<KTree>() => {
+                        let tree = obj.cast::<KTree>()?.inner();
                         let result = tree.$name();
-                        Ok(TreeObject::from(result).into())
+                        Ok(KTree::from(result).into())
                     }
                     // TODO: check and handle KNumber
                     unexpected => unexpected_type("invalid type", unexpected),
@@ -377,30 +377,30 @@ fn add_fidget_module_or_fns(module: &KMap) {
                 }
                 match (&args[0], &args[1]) {
                     (KValue::Object(obj_a), KValue::Object(obj_b))
-                        if obj_a.is_a::<TreeObject>() && obj_b.is_a::<TreeObject>() =>
+                        if obj_a.is_a::<KTree>() && obj_b.is_a::<KTree>() =>
                     {
-                        let tree_a = obj_a.cast::<TreeObject>()?.inner();
-                        let tree_b = obj_b.cast::<TreeObject>()?.inner();
+                        let tree_a = obj_a.cast::<KTree>()?.inner();
+                        let tree_b = obj_b.cast::<KTree>()?.inner();
                         let result = tree_a.$name(tree_b);
-                        Ok(TreeObject::from(result).into())
+                        Ok(KTree::from(result).into())
                     }
-                    (KValue::Object(obj), KValue::Number(num)) if obj.is_a::<TreeObject>() => {
-                        let tree_a = obj.cast::<TreeObject>()?.inner();
+                    (KValue::Object(obj), KValue::Number(num)) if obj.is_a::<KTree>() => {
+                        let tree_a = obj.cast::<KTree>()?.inner();
                         let tree_b = Tree::constant(f64::from(num));
                         let result = tree_a.$name(tree_b);
-                        Ok(TreeObject::from(result).into())
+                        Ok(KTree::from(result).into())
                     }
-                    (KValue::Number(num), KValue::Object(obj)) if obj.is_a::<TreeObject>() => {
+                    (KValue::Number(num), KValue::Object(obj)) if obj.is_a::<KTree>() => {
                         let tree_a = Tree::constant(f64::from(num));
-                        let tree_b = obj.cast::<TreeObject>()?.inner();
+                        let tree_b = obj.cast::<KTree>()?.inner();
                         let result = tree_a.$name(tree_b);
-                        Ok(TreeObject::from(result).into())
+                        Ok(KTree::from(result).into())
                     }
                     (KValue::Number(num1), KValue::Number(num2)) => {
                         let tree_a = Tree::constant(f64::from(num1));
                         let tree_b = Tree::constant(f64::from(num2));
                         let result = tree_a.$name(tree_b);
-                        Ok(TreeObject::from(result).into())
+                        Ok(KTree::from(result).into())
                     }
                     _ => unexpected_args("Tree|Number, Tree|Number", args),
                 }

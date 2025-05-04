@@ -5,35 +5,36 @@ type Inner = fidget::shapes::Sphere;
 
 /// KotoObject wrapper for fidget Sphere
 #[derive(Clone, KotoCopy, KotoType)]
-pub struct Sphere(Inner);
+#[koto(type_name = "Sphere")]
+pub struct KSphere(Inner);
 
-impl KotoObject for Sphere {
+impl KotoObject for KSphere {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
     }
 }
 
-impl From<Inner> for Sphere {
+impl From<Inner> for KSphere {
     fn from(tree: Inner) -> Self {
         Self(tree)
     }
 }
 
-impl From<Sphere> for KValue {
-    fn from(obj: Sphere) -> Self {
+impl From<KSphere> for KValue {
+    fn from(obj: KSphere) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for Sphere {
+impl fmt::Display for KSphere {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // write!(f, "Vec2{{x: {}, y: {}}}", self.0.x, self.0.y)
         write!(f, "Sphere{{}}")
     }
 }
 #[koto_impl]
-impl Sphere {
+impl KSphere {
     /// Create KotoObject representing fidget::shapes::Sphere
     pub fn new(radius: f64, x: f64, y: f64, z: f64) -> KObject {
         KObject::from(Self(

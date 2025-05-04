@@ -1,4 +1,4 @@
-/// Binary operation for TreeObject
+/// Binary operation for KTree
 #[macro_export]
 macro_rules! binary_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
@@ -16,7 +16,7 @@ macro_rules! binary_op {
     }};
 }
 
-/// Binary RHS operation for TreeObject
+/// Binary RHS operation for KTree
 #[macro_export]
 macro_rules! binary_op_rhs {
     ($self:ident, $other:expr, $op_name:ident) => {{
@@ -30,7 +30,7 @@ macro_rules! binary_op_rhs {
     }};
 }
 
-/// Compound operation for TreeObject
+/// Compound operation for KTree
 #[macro_export]
 macro_rules! compound_assign_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
@@ -50,7 +50,7 @@ macro_rules! compound_assign_op {
     }};
 }
 
-/// Binary function for TreeObject
+/// Binary function for KTree
 #[macro_export]
 macro_rules! binary_fn {
     ($ctx:ident, $name:ident) => {{

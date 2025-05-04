@@ -10,9 +10,9 @@ type Inner = Tree;
 /// KotoObject wrapper for fidget Tree
 #[derive(Clone, KotoCopy, KotoType)]
 #[koto(type_name = "Tree")]
-pub struct TreeObject(Inner);
+pub struct KTree(Inner);
 
-impl KotoObject for TreeObject {
+impl KotoObject for KTree {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
@@ -129,19 +129,19 @@ impl KotoObject for TreeObject {
     }
 }
 
-impl From<Inner> for TreeObject {
+impl From<Inner> for KTree {
     fn from(tree: Inner) -> Self {
         Self(tree)
     }
 }
 
-impl From<TreeObject> for KValue {
-    fn from(obj: TreeObject) -> Self {
+impl From<KTree> for KValue {
+    fn from(obj: KTree) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for TreeObject {
+impl fmt::Display for KTree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // write!(f, "Vec2{{x: {}, y: {}}}", self.0.x, self.0.y)
         write!(f, "Tree{{}}")
@@ -149,7 +149,7 @@ impl fmt::Display for TreeObject {
 }
 
 #[koto_impl]
-impl TreeObject {
+impl KTree {
     /// Create KotoObject representing Tree::x()
     pub fn x() -> KObject {
         KObject::from(Self(Inner::x().into()))
