@@ -73,6 +73,13 @@ The `Tree` type represents the basic type for math expressions which can be buil
 # TODO
 ```
 
+<!-- ## Tree.min
+## Tree.max
+## Tree.compare
+## Tree.and
+## Tree.or
+## Tree.atan2 -->
+
 ## Tree.abs
 
 ```kototype
@@ -91,3 +98,18 @@ new_tree = x.abs()
 from fidget import abs
 new_tree = abs x
 ```
+
+<!-- ## Tree.sqrt
+## Tree.square
+## Tree.sin
+## Tree.cos
+## Tree.tan
+## Tree.asin
+## Tree.acos
+## Tree.atan
+## Tree.exp
+## Tree.ln
+## Tree.not
+## Tree.ceil
+## Tree.floor
+## Tree.round -->

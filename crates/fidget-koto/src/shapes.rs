@@ -36,15 +36,11 @@ impl fmt::Display for Sphere {
 #[koto_impl]
 impl Sphere {
     /// Create KotoObject representing fidget::shapes::Sphere
-    pub fn new() -> KObject {
+    pub fn new(radius: f64, x: f64, y: f64, z: f64) -> KObject {
         KObject::from(Self(
             Inner {
-                center: fidget::shapes::Vec3 {
-                    x: 0.0,
-                    y: 0.0,
-                    z: 0.0,
-                },
-                radius: 0.5,
+                center: fidget::shapes::Vec3 { x, y, z },
+                radius,
             }
             .into(),
         ))

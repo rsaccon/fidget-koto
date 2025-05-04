@@ -1,9 +1,0 @@
-# from simple_module import radius
-# s1 = sphere radius, -0.5, -0.25
-
-# or:
-
-s1 = sphere simple_module.radius, -0.5, -0.25
-
-# draw s1
-draw s1, 1, 0, 0
