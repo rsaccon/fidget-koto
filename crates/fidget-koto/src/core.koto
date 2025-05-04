@@ -4,10 +4,6 @@ export move = |shape, dx, dy, dz = 0.0|
   ax, ay, az = axes()
   shape.remap_xyz ax - dx, ay - dy, az - dz
 
-# export sphere = |radius, cx = 0.0, cy = 0.0, cz = 0.0|
-#   ax, ay, az = axes()
-#   sqrt((ax - cx)^2 + (ay - cy)^2 + (az - cz)^2) - radius
-
 export union = |a, b| a.min(b)
 
 export intersection = |a, b| a.max(b)

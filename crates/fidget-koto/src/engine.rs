@@ -80,18 +80,16 @@ impl Engine {
                     } else if obj.is_a::<KCircle>() {
                         let k_circle = obj.cast::<KCircle>();
                         let circle = k_circle.unwrap().inner();
-                        let tree = Tree::from(circle);
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree,
+                            tree: Tree::from(circle),
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
                     } else if obj.is_a::<KSphere>() {
                         let k_sphere = obj.cast::<KSphere>();
-                        let fidget_sphere = k_sphere.unwrap().inner();
-                        let fidget_tree = Tree::from(fidget_sphere);
+                        let sphere = k_sphere.unwrap().inner();
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: fidget_tree,
+                            tree: Tree::from(sphere),
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
@@ -107,57 +105,25 @@ impl Engine {
                 ] => {
                     if obj.is_a::<KTree>() {
                         let k_tree = obj.cast::<KTree>();
-                        let f = |a| {
-                            let a = f64::from(a);
-                            if a < 0.0 {
-                                0
-                            } else if a > 1.0 {
-                                255
-                            } else {
-                                (a * 255.0) as u8
-                            }
-                        };
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree: k_tree.unwrap().inner(),
-                            color_rgb: [f(r), f(g), f(b)],
+                            color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
                         });
                         Ok(KValue::Null)
                     } else if obj.is_a::<KCircle>() {
                         let k_circle = obj.cast::<KCircle>();
                         let circle = k_circle.unwrap().inner();
-                        let tree = Tree::from(circle);
-                        let f = |a| {
-                            let a = f64::from(a);
-                            if a < 0.0 {
-                                0
-                            } else if a > 1.0 {
-                                255
-                            } else {
-                                (a * 255.0) as u8
-                            }
-                        };
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree,
-                            color_rgb: [f(r), f(g), f(b)],
+                            tree: Tree::from(circle),
+                            color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
                         });
                         Ok(KValue::Null)
                     } else if obj.is_a::<KSphere>() {
                         let k_sphere = obj.cast::<KSphere>();
-                        let fidget_sphere = k_sphere.unwrap().inner();
-                        let fidget_tree = Tree::from(fidget_sphere);
-                        let f = |a| {
-                            let a = f64::from(a);
-                            if a < 0.0 {
-                                0
-                            } else if a > 1.0 {
-                                255
-                            } else {
-                                (a * 255.0) as u8
-                            }
-                        };
+                        let sphere = k_sphere.unwrap().inner();
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: fidget_tree,
-                            color_rgb: [f(r), f(g), f(b)],
+                            tree: Tree::from(sphere),
+                            color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
                         });
                         Ok(KValue::Null)
                     } else {
@@ -430,4 +396,15 @@ fn add_fidget_module_or_fns(module: &KMap) {
     add_unary_fn!("ceil", ceil);
     add_unary_fn!("floor", floor);
     add_unary_fn!("round", round);
+}
+
+fn to_u8(number: &KNumber) -> u8 {
+    let number = f64::from(number);
+    if number < 0.0 {
+        0
+    } else if number > 1.0 {
+        255
+    } else {
+        (number * 255.0) as u8
+    }
 }
