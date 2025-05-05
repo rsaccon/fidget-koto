@@ -1,8 +1,0 @@
-# from fidget import intersection
-
-s1 = sphere 0.6, -0.5, 0.0, 0.0
-s2 = sphere 0.6, 0.5, 0.0, 0.0
-csg = difference s1, s2
-# draw move csg, 1.0, 0.0, 0.0  # Failure
-
-draw scale csg, 0.5, 1.0, 1.0  # Failure
