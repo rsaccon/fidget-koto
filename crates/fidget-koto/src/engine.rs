@@ -4,7 +4,10 @@ use std::time::Duration;
 
 use fidget::context::Tree;
 
-use super::{DrawShape, KCircle, KSphere, KTree, ScriptContext};
+use super::{
+    DrawShape, KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KTree,
+    KUnion, ScriptContext,
+};
 
 /// Engine initialization settings
 pub struct EngineSettings {
@@ -70,26 +73,9 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj)] => {
-                    if obj.is_a::<KTree>() {
-                        let k_tree = obj.cast::<KTree>();
+                    if let Some(tree) = try_to_tree(&obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: k_tree.unwrap().inner(),
-                            color_rgb: [u8::MAX; 3],
-                        });
-                        Ok(KValue::Null)
-                    } else if obj.is_a::<KCircle>() {
-                        let k_circle = obj.cast::<KCircle>();
-                        let circle = k_circle.unwrap().inner();
-                        context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: Tree::from(circle),
-                            color_rgb: [u8::MAX; 3],
-                        });
-                        Ok(KValue::Null)
-                    } else if obj.is_a::<KSphere>() {
-                        let k_sphere = obj.cast::<KSphere>();
-                        let sphere = k_sphere.unwrap().inner();
-                        context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: Tree::from(sphere),
+                            tree,
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
@@ -103,26 +89,9 @@ impl Engine {
                     KValue::Number(g),
                     KValue::Number(b),
                 ] => {
-                    if obj.is_a::<KTree>() {
-                        let k_tree = obj.cast::<KTree>();
+                    if let Some(tree) = try_to_tree(&obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: k_tree.unwrap().inner(),
-                            color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
-                        });
-                        Ok(KValue::Null)
-                    } else if obj.is_a::<KCircle>() {
-                        let k_circle = obj.cast::<KCircle>();
-                        let circle = k_circle.unwrap().inner();
-                        context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: Tree::from(circle),
-                            color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
-                        });
-                        Ok(KValue::Null)
-                    } else if obj.is_a::<KSphere>() {
-                        let k_sphere = obj.cast::<KSphere>();
-                        let sphere = k_sphere.unwrap().inner();
-                        context_clone.lock().unwrap().shapes.push(DrawShape {
-                            tree: Tree::from(sphere),
+                            tree,
                             color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
                         });
                         Ok(KValue::Null)
@@ -138,16 +107,12 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let circle = KCircle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
-                    Ok(KValue::Object(KObject::from(circle)))
+                    let result = KCircle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
+                    Ok(KValue::Object(KObject::from(result)))
                 }
-                [
-                    KValue::Number(radius),
-                    KValue::Number(cx),
-                    KValue::Number(cy),
-                ] => {
-                    let circle = KCircle::new(f64::from(radius), f64::from(cx), f64::from(cy));
-                    Ok(KValue::Object(KObject::from(circle)))
+                [KValue::Number(radius), KValue::Number(x), KValue::Number(y)] => {
+                    let result = KCircle::new(f64::from(radius), f64::from(x), f64::from(y));
+                    Ok(KValue::Object(KObject::from(result)))
                 }
                 unexpected => unexpected_args("|Circle|", &unexpected),
             }
@@ -157,63 +122,126 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let sphere = KSphere::new(
+                    let result = KSphere::new(
                         f64::from(radius),
                         f64::from(0.0),
                         f64::from(0.0),
                         f64::from(0.0),
                     );
-                    Ok(KValue::Object(KObject::from(sphere)))
+                    Ok(KValue::Object(KObject::from(result)))
                 }
                 [
                     KValue::Number(radius),
-                    KValue::Number(cx),
-                    KValue::Number(cy),
-                    KValue::Number(cz),
+                    KValue::Number(x),
+                    KValue::Number(y),
+                    KValue::Number(z),
                 ] => {
-                    let sphere = KSphere::new(
-                        f64::from(radius),
-                        f64::from(cx),
-                        f64::from(cy),
-                        f64::from(cz),
-                    );
-                    Ok(KValue::Object(KObject::from(sphere)))
+                    let result =
+                        KSphere::new(f64::from(radius), f64::from(x), f64::from(y), f64::from(z));
+                    Ok(KValue::Object(KObject::from(result)))
                 }
                 unexpected => unexpected_args("|Sphere|", &unexpected),
             }
         });
 
-        prelude.add_fn("_move", move |ctx| {
-            // export move = |shape, dx, dy, dz = 0.0|
-            //   ax, ay, az = axes()
-            //   shape.remap_xyz ax - dx, ay - dy, az - dz
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("union", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Object(obj_a), KValue::Object(obj_b)] => {
+                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                        let result = KUnion::new(tree_a, tree_b);
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Union|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Union|", &unexpected),
+            }
         });
 
-        prelude.add_fn("_scale", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("intersection", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Object(obj_a), KValue::Object(obj_b)] => {
+                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                        let result = KIntersection::new(tree_a, tree_b);
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Intersection|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Intersection|", &unexpected),
+            }
         });
 
-        prelude.add_fn("_union", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("difference", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Object(obj_a), KValue::Object(obj_b)] => {
+                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                        let result = KDifference::new(tree_a, tree_b);
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Difference|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Difference|", &unexpected),
+            }
         });
 
-        prelude.add_fn("_intersection", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("inverse", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [KValue::Object(obj)] => {
+                    if let Some(tree) = try_to_tree(obj) {
+                        let result = KInverse::new(tree);
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Inverse|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Inverse|", &unexpected),
+            }
         });
 
-        prelude.add_fn("_inverse", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("move", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [
+                    KValue::Object(obj),
+                    KValue::Number(x),
+                    KValue::Number(y),
+                    KValue::Number(z),
+                ] => {
+                    if let Some(tree) = try_to_tree(obj) {
+                        let result = KMove::new(tree, f64::from(x), f64::from(y), f64::from(z));
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Move|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Move|", &unexpected),
+            }
         });
 
-        prelude.add_fn("_difference", move |ctx| {
-            let _args = ctx.args();
-            Ok(KValue::Null)
+        prelude.add_fn("scale", move |ctx| {
+            let args = ctx.args();
+            match args {
+                [
+                    KValue::Object(obj),
+                    KValue::Number(x),
+                    KValue::Number(y),
+                    KValue::Number(z),
+                ] => {
+                    if let Some(tree) = try_to_tree(obj) {
+                        let result = KScale::new(tree, f64::from(x), f64::from(y), f64::from(z));
+                        Ok(KValue::Object(KObject::from(result)))
+                    } else {
+                        unexpected_args("|Scale|", &args)
+                    }
+                }
+                unexpected => unexpected_args("|Scale|", &unexpected),
+            }
         });
 
         Self {
@@ -265,11 +293,6 @@ impl Engine {
         self.engine.prelude().insert("x", KTree::x());
         self.engine.prelude().insert("y", KTree::y());
         self.engine.prelude().insert("z", KTree::z());
-
-        let core_script = include_str!("core.koto");
-        if let Err(err) = self.engine.compile_and_run(core_script) {
-            return Err(err);
-        }
 
         if self.settings.add_fidget_fns {}
 
@@ -406,5 +429,38 @@ fn to_u8(number: &KNumber) -> u8 {
         255
     } else {
         (number * 255.0) as u8
+    }
+}
+
+fn try_to_tree(obj: &KObject) -> Option<Tree> {
+    if obj.is_a::<KTree>() {
+        let k_tree = obj.cast::<KTree>();
+        Some(k_tree.unwrap().inner())
+    } else if obj.is_a::<KCircle>() {
+        let k_tree = obj.cast::<KCircle>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KSphere>() {
+        let k_tree = obj.cast::<KSphere>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KUnion>() {
+        let k_tree = obj.cast::<KUnion>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KIntersection>() {
+        let k_tree = obj.cast::<KIntersection>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KDifference>() {
+        let k_tree = obj.cast::<KDifference>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KInverse>() {
+        let k_tree = obj.cast::<KInverse>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KMove>() {
+        let k_tree = obj.cast::<KMove>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else if obj.is_a::<KScale>() {
+        let k_tree = obj.cast::<KScale>();
+        Some(Tree::from(k_tree.unwrap().inner()))
+    } else {
+        None
     }
 }

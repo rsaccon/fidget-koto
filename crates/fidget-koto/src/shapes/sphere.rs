@@ -29,8 +29,11 @@ impl From<KSphere> for KValue {
 
 impl fmt::Display for KSphere {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // write!(f, "Vec2{{x: {}, y: {}}}", self.0.x, self.0.y)
-        write!(f, "Sphere{{}}")
+        write!(
+            f,
+            "Sphere{{radius: {}, cx: {}, cy: {}, cz: {}}}",
+            self.0.radius, self.0.center.x, self.0.center.y, self.0.center.z
+        )
     }
 }
 #[koto_impl]
@@ -39,8 +42,8 @@ impl KSphere {
     pub fn new(radius: f64, x: f64, y: f64, z: f64) -> KObject {
         KObject::from(Self(
             Inner {
-                center: fidget::shapes::Vec3 { x, y, z },
                 radius,
+                center: fidget::shapes::Vec3 { x, y, z },
             }
             .into(),
         ))

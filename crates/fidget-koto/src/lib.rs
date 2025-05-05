@@ -61,7 +61,7 @@ mod shapes;
 
 pub use engine::Engine;
 pub use ktree::KTree;
-pub use shapes::{KCircle, KSphere};
+pub use shapes::{KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KUnion};
 
 //////////////////////////////////////////////////////////////////////////////////
 
