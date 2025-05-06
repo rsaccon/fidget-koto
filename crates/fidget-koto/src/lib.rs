@@ -50,7 +50,7 @@
 //! defined in the root scope, and `axes()` returns an object with `x`/`y`/`z`
 //! members.
 
-use fidget::{Error, context::Tree};
+use fidget::context::Tree;
 
 #[macro_use]
 mod macros;
@@ -104,7 +104,7 @@ impl ScriptContext {
 ////////////////////////////////////////////////////////////////////////////////
 
 /// One-shot evaluation of a single expression, in terms of `x, y, z`
-pub fn eval(s: &str) -> Result<Tree, Error> {
+pub fn eval(s: &str) -> Result<Tree, koto::Error> {
     let mut engine = Engine::default();
     engine.eval(s)
 }

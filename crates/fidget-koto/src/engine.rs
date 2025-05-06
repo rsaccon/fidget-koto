@@ -73,7 +73,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj)] => {
-                    if let Some(tree) = try_to_tree(&obj) {
+                    if let Some(tree) = maybe_tree(&obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree,
                             color_rgb: [u8::MAX; 3],
@@ -89,7 +89,7 @@ impl Engine {
                     KValue::Number(g),
                     KValue::Number(b),
                 ] => {
-                    if let Some(tree) = try_to_tree(&obj) {
+                    if let Some(tree) = maybe_tree(&obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree,
                             color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
@@ -148,7 +148,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
-                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                    if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
                         let result = KUnion::new(tree_a, tree_b);
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -163,7 +163,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
-                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                    if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
                         let result = KIntersection::new(tree_a, tree_b);
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -178,7 +178,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
-                    if let (Some(tree_a), Some(tree_b)) = (try_to_tree(obj_a), try_to_tree(obj_b)) {
+                    if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
                         let result = KDifference::new(tree_a, tree_b);
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -193,7 +193,7 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj)] => {
-                    if let Some(tree) = try_to_tree(obj) {
+                    if let Some(tree) = maybe_tree(obj) {
                         let result = KInverse::new(tree);
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -213,7 +213,7 @@ impl Engine {
                     KValue::Number(y),
                     KValue::Number(z),
                 ] => {
-                    if let Some(tree) = try_to_tree(obj) {
+                    if let Some(tree) = maybe_tree(obj) {
                         let result = KMove::new(tree, f64::from(x), f64::from(y), f64::from(z));
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -233,7 +233,7 @@ impl Engine {
                     KValue::Number(y),
                     KValue::Number(z),
                 ] => {
-                    if let Some(tree) = try_to_tree(obj) {
+                    if let Some(tree) = maybe_tree(obj) {
                         let result = KScale::new(tree, f64::from(x), f64::from(y), f64::from(z));
                         Ok(KValue::Object(KObject::from(result)))
                     } else {
@@ -309,19 +309,27 @@ impl Engine {
     }
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
-    pub fn eval(&mut self, script: &str) -> Result<Tree, fidget::Error> {
+    pub fn eval(&mut self, script: &str) -> Result<Tree, koto::Error> {
         self.engine.prelude().insert("x", KTree::x());
         self.engine.prelude().insert("y", KTree::y());
         self.engine.prelude().insert("z", KTree::z());
 
         match self.engine.compile_and_run(script) {
-            Ok(KValue::Object(obj)) if obj.is_a::<KTree>() => {
-                let k_tree = obj.cast::<KTree>();
-                let tree = k_tree.unwrap().inner();
-                Ok(tree)
-            }
-            Ok(_) => Err(fidget::Error::BadNode),
-            Err(_) => Err(fidget::Error::BadNode), // TODO: koto compilation error
+            Ok(KValue::Object(obj)) => match maybe_tree(&obj) {
+                Some(tree) => Ok(tree),
+                _ => Err(koto::Error::from(koto::runtime::Error::new(
+                    // koto::runtime::ErrorKind::UnexpectedError(unexpected_type("Tree", unexpected)),
+                    // TODO: try to use ErrorKind::UnexpectedType
+                    koto::runtime::ErrorKind::UnexpectedError,
+                ))),
+                // _ => Err(fidget::Error::BadNode),
+            },
+            Ok(_) => Err(koto::Error::from(koto::runtime::Error::new(
+                // koto::runtime::ErrorKind::UnexpectedError(unexpected_type("Tree", unexpected)),
+                // TODO: try to use ErrorKind::UnexpectedType
+                koto::runtime::ErrorKind::UnexpectedError,
+            ))),
+            Err(err) => Err(err),
         }
     }
 }
@@ -345,11 +353,10 @@ fn add_fidget_module_or_fns(module: &KMap) {
                     return unexpected_args("1 argument: Tree | Number", args);
                 }
                 match &args[0] {
-                    KValue::Object(obj) if obj.is_a::<KTree>() => {
-                        let tree = obj.cast::<KTree>()?.inner();
-                        let result = tree.$name();
-                        Ok(KTree::from(result).into())
-                    }
+                    KValue::Object(obj) => match maybe_tree(obj) {
+                        Some(tree) => Ok(KTree::from(tree.$name()).into()),
+                        _ => unexpected_type("invalid type", &args[0]),
+                    },
                     // TODO: check and handle KNumber
                     unexpected => unexpected_type("invalid type", unexpected),
                 }
@@ -365,31 +372,32 @@ fn add_fidget_module_or_fns(module: &KMap) {
                     return unexpected_args("2 arguments: Tree|Number, Tree|Number", args);
                 }
                 match (&args[0], &args[1]) {
-                    (KValue::Object(obj_a), KValue::Object(obj_b))
-                        if obj_a.is_a::<KTree>() && obj_b.is_a::<KTree>() =>
-                    {
-                        let tree_a = obj_a.cast::<KTree>()?.inner();
-                        let tree_b = obj_b.cast::<KTree>()?.inner();
-                        let result = tree_a.$name(tree_b);
-                        Ok(KTree::from(result).into())
+                    (KValue::Object(obj_a), KValue::Object(obj_b)) => {
+                        match (maybe_tree(obj_a), maybe_tree(obj_b)) {
+                            (Some(tree_a), Some(tree_b)) => {
+                                Ok(KTree::from(tree_a.$name(tree_b)).into())
+                            }
+                            _ => unexpected_args("Tree, Tree", args),
+                        }
                     }
-                    (KValue::Object(obj), KValue::Number(num)) if obj.is_a::<KTree>() => {
-                        let tree_a = obj.cast::<KTree>()?.inner();
-                        let tree_b = Tree::constant(f64::from(num));
-                        let result = tree_a.$name(tree_b);
-                        Ok(KTree::from(result).into())
-                    }
-                    (KValue::Number(num), KValue::Object(obj)) if obj.is_a::<KTree>() => {
-                        let tree_a = Tree::constant(f64::from(num));
-                        let tree_b = obj.cast::<KTree>()?.inner();
-                        let result = tree_a.$name(tree_b);
-                        Ok(KTree::from(result).into())
-                    }
+                    (KValue::Object(obj), KValue::Number(num)) => match maybe_tree(obj) {
+                        Some(tree_a) => {
+                            let tree_b = Tree::constant(f64::from(num));
+                            Ok(KTree::from(tree_a.$name(tree_b)).into())
+                        }
+                        _ => unexpected_args("Tree, Number", args),
+                    },
+                    (KValue::Number(num), KValue::Object(obj)) => match maybe_tree(obj) {
+                        Some(tree_b) => {
+                            let tree_a = Tree::constant(f64::from(num));
+                            Ok(KTree::from(tree_a.$name(tree_b)).into())
+                        }
+                        _ => unexpected_args("Number, Tree", args),
+                    },
                     (KValue::Number(num1), KValue::Number(num2)) => {
                         let tree_a = Tree::constant(f64::from(num1));
                         let tree_b = Tree::constant(f64::from(num2));
-                        let result = tree_a.$name(tree_b);
-                        Ok(KTree::from(result).into())
+                        Ok(KTree::from(tree_a.$name(tree_b)).into())
                     }
                     _ => unexpected_args("Tree|Number, Tree|Number", args),
                 }
@@ -432,7 +440,7 @@ fn to_u8(number: &KNumber) -> u8 {
     }
 }
 
-fn try_to_tree(obj: &KObject) -> Option<Tree> {
+fn maybe_tree(obj: &KObject) -> Option<Tree> {
     if obj.is_a::<KTree>() {
         let k_tree = obj.cast::<KTree>();
         Some(k_tree.unwrap().inner())
