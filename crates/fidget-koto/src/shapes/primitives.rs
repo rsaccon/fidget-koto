@@ -35,6 +35,7 @@ impl fmt::Display for KCircle {
         )
     }
 }
+
 #[koto_impl]
 impl KCircle {
     /// Create KotoObject representing fidget::shapes::Circle
@@ -48,7 +49,7 @@ impl KCircle {
         ))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Circle struct
     pub fn inner(&self) -> Circle {
         self.to_owned().0
     }
@@ -86,6 +87,7 @@ impl fmt::Display for KSphere {
         )
     }
 }
+
 #[koto_impl]
 impl KSphere {
     /// Create KotoObject representing fidget::shapes::Sphere
@@ -99,7 +101,7 @@ impl KSphere {
         ))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Sphere struct
     pub fn inner(&self) -> Sphere {
         self.to_owned().0
     }

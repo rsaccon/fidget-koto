@@ -1,4 +1,4 @@
-# from fidget import square, sqrt, max, min, abs
+from fidget import square, sqrt, max, min, abs
 
 # see article on smooth SDF min by Inigo Quilez: https://iquilezles.org/articles/smin/
 

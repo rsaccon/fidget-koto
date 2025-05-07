@@ -32,6 +32,7 @@ impl fmt::Display for KDifference {
         write!(f, "Difference{{}}")
     }
 }
+
 #[koto_impl]
 impl KDifference {
     /// Create KotoObject representing fidget::shapes::Difference
@@ -45,7 +46,7 @@ impl KDifference {
         ))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Difference struct
     pub fn inner(&self) -> Difference {
         self.to_owned().0
     }
@@ -79,6 +80,7 @@ impl fmt::Display for KIntersection {
         write!(f, "Intersection{{}}")
     }
 }
+
 #[koto_impl]
 impl KIntersection {
     /// Create KotoObject representing fidget::shapes::Intersection
@@ -86,7 +88,7 @@ impl KIntersection {
         KObject::from(Self(Intersection { input: vec![a, b] }.into()))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Intersection struct
     pub fn inner(&self) -> Intersection {
         self.to_owned().0
     }
@@ -120,6 +122,7 @@ impl fmt::Display for KInverse {
         write!(f, "Inverse{{}}")
     }
 }
+
 #[koto_impl]
 impl KInverse {
     /// Create KotoObject representing fidget::shapes::Inverse
@@ -127,7 +130,7 @@ impl KInverse {
         KObject::from(Self(Inverse { shape }.into()))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Inverse struct
     pub fn inner(&self) -> Inverse {
         self.to_owned().0
     }
@@ -161,6 +164,7 @@ impl fmt::Display for KUnion {
         write!(f, "Union{{}}")
     }
 }
+
 #[koto_impl]
 impl KUnion {
     /// Create KotoObject representing fidget::shapes::Union
@@ -168,7 +172,7 @@ impl KUnion {
         KObject::from(Self(Union { input: vec![a, b] }.into()))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Union struct
     pub fn inner(&self) -> Union {
         self.to_owned().0
     }

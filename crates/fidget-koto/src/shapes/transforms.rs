@@ -36,6 +36,7 @@ impl fmt::Display for KMove {
         )
     }
 }
+
 #[koto_impl]
 impl KMove {
     /// Create KotoObject representing fidget::shapes::Move
@@ -49,7 +50,7 @@ impl KMove {
         ))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Move struct
     pub fn inner(&self) -> Move {
         self.to_owned().0
     }
@@ -87,6 +88,7 @@ impl fmt::Display for KScale {
         )
     }
 }
+
 #[koto_impl]
 impl KScale {
     /// Create KotoObject representing fidget::shapes::Scale
@@ -100,7 +102,7 @@ impl KScale {
         ))
     }
 
-    /// Access the inner fidget Tree struct
+    /// Access the inner fidget Move struct
     pub fn inner(&self) -> Scale {
         self.to_owned().0
     }
