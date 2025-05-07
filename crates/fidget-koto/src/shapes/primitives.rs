@@ -1,7 +1,10 @@
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
 
+use fidget::context::Tree;
 use fidget::shapes::{Circle, Sphere, Vec2, Vec3};
+
+use super::super::KTree;
 
 /// KotoObject wrapper for fidget Circle
 #[derive(Clone, KotoCopy, KotoType)]
@@ -104,5 +107,13 @@ impl KSphere {
     /// Access the inner fidget Sphere struct
     pub fn inner(&self) -> Sphere {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }
