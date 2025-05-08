@@ -3,10 +3,10 @@
 macro_rules! binary_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
         match $other {
-            KValue::Object(other) if other.is_a::<Self>() => {
-                let other = other.cast::<Self>().unwrap().inner();
-                Ok(KValue::Object(Self($self.inner().$op_name(other)).into()))
-            }
+            KValue::Object(other) => match super::engine::maybe_tree(other) {
+                Some(other) => Ok(KValue::Object(KTree($self.inner().$op_name(other)).into())),
+                _ => unexpected_type("Object or Number", $other),
+            },
             KValue::Number(num) => {
                 let other = Tree::constant(f64::from(num));
                 Ok(KValue::Object(Self($self.inner().$op_name(other)).into()))
@@ -35,11 +35,13 @@ macro_rules! binary_op_rhs {
 macro_rules! compound_assign_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
         match $other {
-            KValue::Object(other) if other.is_a::<Self>() => {
-                let other = other.cast::<Self>().unwrap().inner();
-                $self.0 = $self.inner().$op_name(other);
-                Ok(())
-            }
+            KValue::Object(other) => match super::engine::maybe_tree(other) {
+                Some(other) => {
+                    $self.0 = $self.inner().$op_name(other);
+                    Ok(())
+                }
+                _ => unexpected_type("Object or Number", $other),
+            },
             KValue::Number(num) => {
                 let other = Tree::constant(f64::from(num));
                 $self.0 = $self.inner().$op_name(other);
@@ -59,13 +61,15 @@ macro_rules! binary_fn {
             return unexpected_args("1 argument: |Object|", args);
         }
         let lhs_tree = $ctx.instance().unwrap().inner();
-        match &$ctx.args[0] {
-            KValue::Object(obj) if obj.is_a::<Self>() => {
-                let koto_tree = obj.cast::<Self>();
-                let tree = koto_tree.unwrap().inner();
-                let result = lhs_tree.$name(tree);
-                Ok(KValue::Object(Self(result).into()))
-            }
+        let arg = &$ctx.args[0];
+        match arg {
+            KValue::Object(obj) => match super::engine::maybe_tree(obj) {
+                Some(tree) => {
+                    let result = lhs_tree.$name(tree);
+                    Ok(KValue::Object(Self(result).into()))
+                }
+                _ => unexpected_type("Object or Number", arg),
+            },
             KValue::Number(num) => {
                 let tree = lhs_tree.$name(Tree::constant(f64::from(num)));
                 Ok(KValue::Object(Self(tree).into()))

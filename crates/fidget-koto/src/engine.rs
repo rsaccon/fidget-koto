@@ -440,7 +440,7 @@ fn to_u8(number: &KNumber) -> u8 {
     }
 }
 
-fn maybe_tree(obj: &KObject) -> Option<Tree> {
+pub fn maybe_tree(obj: &KObject) -> Option<Tree> {
     if obj.is_a::<KTree>() {
         let k_tree = obj.cast::<KTree>();
         Some(k_tree.unwrap().inner())
