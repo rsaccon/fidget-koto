@@ -19,8 +19,7 @@ impl KotoObject for KTree {
     }
 
     fn negate(&self) -> runtime::Result<KValue> {
-        let tree = self.0.clone().neg();
-        Ok(KValue::Object(Self(tree).into()))
+        unary_op!(self, neg)
     }
 
     fn add(&self, other: &KValue) -> runtime::Result<KValue> {

@@ -58,6 +58,7 @@ mod macros;
 mod engine;
 mod ktree;
 mod shapes;
+mod utils;
 
 pub use engine::Engine;
 pub use ktree::KTree;

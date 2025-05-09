@@ -1,9 +1,24 @@
+/// Unary operation for KTree
+#[macro_export]
+macro_rules! unary_op {
+    ($self:ident, $op_name:ident) => {{ Ok(KValue::Object(Self($self.inner().$op_name()).into())) }};
+}
+
+/// Unary operation for Koto Shape objects
+#[macro_export]
+macro_rules! shape_unary_op {
+    ($self:ident, $op_name:ident) => {{
+        let tree = Tree::from($self.inner()).$op_name();
+        Ok(KValue::Object(KTree::from(tree).into()))
+    }};
+}
+
 /// Binary operation for KTree
 #[macro_export]
 macro_rules! binary_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
         match $other {
-            KValue::Object(other) => match super::engine::maybe_tree(other) {
+            KValue::Object(other) => match crate::utils::maybe_tree(other) {
                 Some(other) => Ok(KValue::Object(KTree($self.inner().$op_name(other)).into())),
                 _ => unexpected_type("Object or Number", $other),
             },
@@ -35,7 +50,7 @@ macro_rules! binary_op_rhs {
 macro_rules! compound_assign_op {
     ($self:ident, $other:expr, $op_name:ident) => {{
         match $other {
-            KValue::Object(other) => match super::engine::maybe_tree(other) {
+            KValue::Object(other) => match crate::utils::maybe_tree(other) {
                 Some(other) => {
                     $self.0 = $self.inner().$op_name(other);
                     Ok(())
@@ -63,7 +78,7 @@ macro_rules! binary_fn {
         let lhs_tree = $ctx.instance().unwrap().inner();
         let arg = &$ctx.args[0];
         match arg {
-            KValue::Object(obj) => match super::engine::maybe_tree(obj) {
+            KValue::Object(obj) => match crate::utils::maybe_tree(obj) {
                 Some(tree) => {
                     let result = lhs_tree.$name(tree);
                     Ok(KValue::Object(Self(result).into()))

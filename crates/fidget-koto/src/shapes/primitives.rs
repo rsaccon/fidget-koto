@@ -1,8 +1,7 @@
-use koto::{derive::*, prelude::*, runtime};
-use std::fmt;
-
 use fidget::context::Tree;
 use fidget::shapes::{Circle, Sphere, Vec2, Vec3};
+use koto::{derive::*, prelude::*, runtime};
+use std::fmt;
 
 use super::super::KTree;
 
@@ -15,6 +14,12 @@ impl KotoObject for KCircle {
         ctx.append(self.to_string());
         Ok(())
     }
+
+    fn negate(&self) -> runtime::Result<KValue> {
+        shape_unary_op!(self, neg)
+    }
+
+    // TODO: other ops
 }
 
 impl From<Circle> for KCircle {

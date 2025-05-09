@@ -1,8 +1,7 @@
-use koto::{derive::*, prelude::*, runtime};
-use std::fmt;
-
 use fidget::context::Tree;
 use fidget::shapes::{Move, Scale, Vec3};
+use koto::{derive::*, prelude::*, runtime};
+use std::fmt;
 
 /// KotoObject wrapper for fidget Move
 #[derive(Clone, KotoCopy, KotoType)]

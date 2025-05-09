@@ -1,8 +1,7 @@
-use koto::{derive::*, prelude::*, runtime};
-use std::fmt;
-
 use fidget::context::Tree;
 use fidget::shapes::{Difference, Intersection, Inverse, Union};
+use koto::{derive::*, prelude::*, runtime};
+use std::fmt;
 
 /// KotoObject wrapper for fidget Difference
 #[derive(Clone, KotoCopy, KotoType)]
