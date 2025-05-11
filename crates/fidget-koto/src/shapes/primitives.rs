@@ -2,6 +2,7 @@ use fidget::context::Tree;
 use fidget::shapes::{Circle, Sphere, Vec2, Vec3};
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
+use std::ops::{Add, Div, Mul, Sub};
 
 use super::super::KTree;
 
@@ -17,6 +18,46 @@ impl KotoObject for KCircle {
 
     fn negate(&self) -> runtime::Result<KValue> {
         shape_unary_op!(self, neg)
+    }
+
+    fn add(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, add)
+    }
+
+    fn add_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op_rhs!(self, other, add)
+    }
+
+    fn subtract(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, sub)
+    }
+
+    fn subtract_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op_rhs!(self, other, sub)
+    }
+
+    fn multiply(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, mul)
+    }
+
+    fn multiply_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op_rhs!(self, other, mul)
+    }
+
+    fn divide(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, div)
+    }
+
+    fn divide_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op_rhs!(self, other, div)
+    }
+
+    fn remainder(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, modulo)
+    }
+
+    fn remainder_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
+        shape_binary_op!(self, other, modulo)
     }
 
     // TODO: other ops

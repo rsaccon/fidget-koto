@@ -1,15 +1,15 @@
 /// Unary operation for KTree
 #[macro_export]
 macro_rules! unary_op {
-    ($self:ident, $op_name:ident) => {{ Ok(KValue::Object(Self($self.inner().$op_name()).into())) }};
+    ($self:ident, $op_name:ident) => {{ Ok(KValue::Object(KTree($self.inner().$op_name()).into())) }};
 }
 
 /// Unary operation for Koto Shape objects
 #[macro_export]
 macro_rules! shape_unary_op {
     ($self:ident, $op_name:ident) => {{
-        let tree = Tree::from($self.inner()).$op_name();
-        Ok(KValue::Object(KTree::from(tree).into()))
+        let self_tree = Tree::from($self.inner());
+        Ok(KValue::Object(KTree::from(self_tree.$op_name()).into()))
     }};
 }
 
@@ -24,7 +24,30 @@ macro_rules! binary_op {
             },
             KValue::Number(num) => {
                 let other = Tree::constant(f64::from(num));
-                Ok(KValue::Object(Self($self.inner().$op_name(other)).into()))
+                Ok(KValue::Object(KTree($self.inner().$op_name(other)).into()))
+            }
+            unexpected => unexpected_type("Object or Number", unexpected),
+        }
+    }};
+}
+
+/// Binary operation for Koto Shape
+#[macro_export]
+macro_rules! shape_binary_op {
+    ($self:ident, $other:expr, $op_name:ident) => {{
+        let self_tree = Tree::from($self.inner());
+        match $other {
+            KValue::Object(other) => match crate::utils::maybe_tree(other) {
+                Some(other) => Ok(KValue::Object(
+                    KTree::from(self_tree.$op_name(other)).into(),
+                )),
+                _ => unexpected_type("Object or Number", $other),
+            },
+            KValue::Number(num) => {
+                let other = Tree::constant(f64::from(num));
+                Ok(KValue::Object(
+                    KTree::from(self_tree.$op_name(other)).into(),
+                ))
             }
             unexpected => unexpected_type("Object or Number", unexpected),
         }
@@ -39,6 +62,23 @@ macro_rules! binary_op_rhs {
             KValue::Number(num) => {
                 let other = Tree::constant(f64::from(num));
                 Ok(KValue::Object(Self(other.$op_name($self.inner())).into()))
+            }
+            unexpected => unexpected_type("Object or Number", unexpected),
+        }
+    }};
+}
+
+/// Binary RHS operation for Koto shapes
+#[macro_export]
+macro_rules! shape_binary_op_rhs {
+    ($self:ident, $other:expr, $op_name:ident) => {{
+        let self_tree = Tree::from($self.inner());
+        match $other {
+            KValue::Number(num) => {
+                let other = Tree::constant(f64::from(num));
+                Ok(KValue::Object(
+                    KTree::from(other.$op_name(self_tree)).into(),
+                ))
             }
             unexpected => unexpected_type("Object or Number", unexpected),
         }

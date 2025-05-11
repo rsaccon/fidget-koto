@@ -16,4 +16,5 @@ s1 = sphere 0.6, -0.5, 0.0, 0.0
 s2 = sphere 0.6, 0.5, 0.0, 0.0
 
 # draw smin_circular s1, s2, 0.09
-draw smin_cubic_polynominal s1.tree(), s2.tree(), 0.05
+# draw smin_cubic_polynominal s1.tree(), s2.tree(), 0.05
+# draw smin_cubic_polynominal s1, s2, 0.05
