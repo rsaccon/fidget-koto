@@ -40,7 +40,7 @@ impl fmt::Display for KDifference {
 impl KDifference {
     /// Create KotoObject representing fidget::shapes::Difference
     pub fn new(a: Tree, b: Tree) -> KObject {
-        KObject::from(Self(
+        KObject::from(KDifference(
             Difference {
                 shape: a,
                 cutout: b,

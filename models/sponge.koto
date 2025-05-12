@@ -8,14 +8,14 @@ recurse = |x, y, z, depth|
     base = intersection(r, r.remap_xyz(y, x, z)).tree() - 1/3.0
     out = base
     for i in 0..depth
-        out = union(base, out.remap_xyz(x * 3, y * 3, z))
+        out = union(base, out.remap_xyz(x * 3, y * 3, z)).tree()
     out
 
 shape_square = intersection(abs(x) - 1, abs(y) - 1)
 xy = difference(shape_square, recurse(x, y, z, 3))
-yz = xy.remap_xyz(y, z, x)
-zx = xy.remap_xyz(z, x, y)
-shape_sponge = intersection(intersection(xy, yz), zx)
+yz = xy.tree().remap_xyz(y, z, x)
+zx = xy.tree().remap_xyz(z, x, y)
+shape_sponge = intersection(intersection(xy, yz), zx).tree()
 
 radius = sqrt(square(x) + square(y) + square(z))
 manhattan = max(abs(x), max(abs(y), abs(z)))
