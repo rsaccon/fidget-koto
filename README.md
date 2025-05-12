@@ -9,7 +9,8 @@ cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT_MODEL
 The `models` folder has some examples (all Rhai fidget models have been ported to Koto and some new ones added). The fidget-viewer can currently only watch one Koto file, therefore any attempt to import from a differnt module represented by a differnt Koto file in the `models` folder will fail.
 
 ## Differences to fidget Rhai scripting:
-* no `draw_rgb`, just use `draw` with optionally adding the color arguments `r`, `g` and `b`.
+* no `draw_rgb()` function, just use `draw()` with optionally adding the color arguments `r`, `g` and `b`.
+* use `tree()` Koto shape method for converting to a fidget Tree.
 * Engine initialization
   * Default: `Engine::default()`
   * Custom: `Engine::new(settings: EngineSettings)`. The following options are available:
