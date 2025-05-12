@@ -1,7 +1,11 @@
-use fidget::context::Tree;
-use fidget::shapes::{Move, Scale, Vec3};
+use fidget::{
+    context::Tree,
+    shapes::{Move, Scale, Vec3},
+};
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
+
+use crate::KTree;
 
 /// KotoObject wrapper for fidget Move
 #[derive(Clone, KotoCopy, KotoType)]
@@ -52,6 +56,14 @@ impl KMove {
     /// Access the inner fidget Move struct
     pub fn inner(&self) -> Move {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }
 
@@ -104,5 +116,13 @@ impl KScale {
     /// Access the inner fidget Move struct
     pub fn inner(&self) -> Scale {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }

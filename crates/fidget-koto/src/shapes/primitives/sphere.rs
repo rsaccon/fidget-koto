@@ -1,10 +1,11 @@
-use fidget::context::Tree;
-use fidget::shapes::{Circle, Sphere, Vec2, Vec3};
+use fidget::{
+    context::Tree,
+    shapes::{Sphere, Vec3},
+};
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
-use std::ops::{Add, Div, Mul, Sub};
 
-use super::super::super::KTree;
+use crate::KTree;
 
 /// KotoObject wrapper for fidget Sphere
 #[derive(Clone, KotoCopy, KotoType)]

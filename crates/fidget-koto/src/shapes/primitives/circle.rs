@@ -1,10 +1,11 @@
-use fidget::context::Tree;
-use fidget::shapes::{Circle, Vec2};
+use fidget::{
+    context::Tree,
+    shapes::{Circle, Vec2},
+};
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
-use std::ops::{Add, Div, Mul, Sub};
 
-use super::super::super::KTree;
+use crate::KTree;
 
 /// KotoObject wrapper for fidget Circle
 #[derive(Clone, KotoCopy, KotoType)]
@@ -15,52 +16,6 @@ impl KotoObject for KCircle {
         ctx.append(self.to_string());
         Ok(())
     }
-
-    fn negate(&self) -> runtime::Result<KValue> {
-        shape_unary_op!(self, neg)
-    }
-
-    fn add(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, add)
-    }
-
-    fn add_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op_rhs!(self, other, add)
-    }
-
-    fn subtract(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, sub)
-    }
-
-    fn subtract_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op_rhs!(self, other, sub)
-    }
-
-    fn multiply(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, mul)
-    }
-
-    fn multiply_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op_rhs!(self, other, mul)
-    }
-
-    fn divide(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, div)
-    }
-
-    fn divide_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op_rhs!(self, other, div)
-    }
-
-    fn remainder(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, modulo)
-    }
-
-    fn remainder_rhs(&self, other: &KValue) -> runtime::Result<KValue> {
-        shape_binary_op!(self, other, modulo)
-    }
-
-    // TODO: other ops
 }
 
 impl From<Circle> for KCircle {
@@ -101,5 +56,13 @@ impl KCircle {
     /// Access the inner fidget Circle struct
     pub fn inner(&self) -> Circle {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }

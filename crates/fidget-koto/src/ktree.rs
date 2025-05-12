@@ -142,7 +142,6 @@ impl From<KTree> for KValue {
 
 impl fmt::Display for KTree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // write!(f, "Vec2{{x: {}, y: {}}}", self.0.x, self.0.y)
         write!(f, "Tree{{}}")
     }
 }

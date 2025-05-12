@@ -1,7 +1,11 @@
-use fidget::context::Tree;
-use fidget::shapes::{Difference, Intersection, Inverse, Union};
+use fidget::{
+    context::Tree,
+    shapes::{Difference, Intersection, Inverse, Union},
+};
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
+
+use crate::KTree;
 
 /// KotoObject wrapper for fidget Difference
 #[derive(Clone, KotoCopy, KotoType)]
@@ -49,6 +53,14 @@ impl KDifference {
     pub fn inner(&self) -> Difference {
         self.to_owned().0
     }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
+    }
 }
 
 /// KotoObject wrapper for fidget Intersection
@@ -90,6 +102,14 @@ impl KIntersection {
     /// Access the inner fidget Intersection struct
     pub fn inner(&self) -> Intersection {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }
 
@@ -133,6 +153,14 @@ impl KInverse {
     pub fn inner(&self) -> Inverse {
         self.to_owned().0
     }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
+    }
 }
 
 /// KotoObject wrapper for fidget Union
@@ -174,5 +202,13 @@ impl KUnion {
     /// Access the inner fidget Union struct
     pub fn inner(&self) -> Union {
         self.to_owned().0
+    }
+
+    /// Access the inner fidget Tree struct
+    #[koto_method]
+    fn tree(&self) -> runtime::Result<KValue> {
+        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+            self.inner(),
+        )))))
     }
 }
