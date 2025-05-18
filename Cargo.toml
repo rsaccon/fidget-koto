@@ -12,7 +12,7 @@ members = ["crates/*", "demos/*"]
 resolver = "2"
 
 [workspace.dependencies]
-fidget = { version = "0.3.6", default-features = false, features = ["jit"] }
+fidget = { version = "0.3.7", default-features = false, features = ["jit"] }
 koto = "0.16.0"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
