@@ -12,7 +12,7 @@ members = ["crates/*", "demos/*"]
 resolver = "2"
 
 [workspace.dependencies]
-fidget = { version = "0.3.7", default-features = false, features = ["jit"] }
+fidget = { version = "0.3.8", default-features = false, features = ["jit"] }
 koto = "0.16.0"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
@@ -28,4 +28,4 @@ fidget-koto = { path = "crates/fidget-koto" }
 
 [patch.crates-io]
 koto = { git = "https://github.com/koto-lang/koto", rev = "2dd86d4f6bf1118056824dbfb3aeaf717e5cb9e2" }
-# sfidget = { git = "https://github.com/mkeeter/fidget", rev = "36c7b135021caf7a3f932e2efbb9bf45b98c12da" }
+fidget = { git = "https://github.com/mkeeter/fidget" }                                                 #, rev = "36c7b135021caf7a3f932e2efbb9bf45b98c12da" }
