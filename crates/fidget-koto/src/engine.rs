@@ -10,7 +10,7 @@ use std::time::Duration;
 
 /// Engine initialization settings
 pub struct EngineSettings {
-    add_fidget_fns: bool,
+    default_imports: bool,
     execution_limit: Duration,
 }
 
@@ -24,7 +24,7 @@ pub struct Engine {
 impl Default for Engine {
     fn default() -> Self {
         Self::new(EngineSettings {
-            add_fidget_fns: false,
+            default_imports: true,
             execution_limit: Duration::from_secs(1),
         })
     }
@@ -57,7 +57,7 @@ impl Engine {
 
         prelude.insert("axes", axes);
 
-        if settings.add_fidget_fns {
+        if settings.default_imports {
             add_fidget_module_or_fns(&prelude);
         } else {
             let module = KMap::with_type("fidget");
@@ -293,7 +293,9 @@ impl Engine {
         self.engine.prelude().insert("y", KTree::y());
         self.engine.prelude().insert("z", KTree::z());
 
-        if self.settings.add_fidget_fns {}
+        if self.settings.default_imports {
+            // TODO ???
+        }
 
         match self.engine.compile_and_run(script) {
             Ok(_) => (),

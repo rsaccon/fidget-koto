@@ -1,4 +1,4 @@
-# Koto fidget prelude
+# fidget
 
 Utilities made available at global namespace for working with [fidget](https://github.com/mkeeter/fidget) data structures in Koto.
 
