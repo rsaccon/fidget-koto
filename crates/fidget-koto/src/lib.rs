@@ -56,6 +56,7 @@ use fidget::context::Tree;
 mod macros;
 
 mod engine;
+mod fidget_lib;
 mod ktree;
 mod shapes;
 mod utils;

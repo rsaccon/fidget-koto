@@ -1,4 +1,4 @@
-use super::{KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KTree, KUnion};
+use crate::{KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KTree, KUnion};
 use fidget::context::Tree;
 use koto::runtime::KObject;
 
