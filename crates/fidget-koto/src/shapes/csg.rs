@@ -9,6 +9,7 @@ use crate::KTree;
 
 /// KotoObject wrapper for fidget Difference
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Difference")]
 pub struct KDifference(Difference);
 
 impl KotoObject for KDifference {
@@ -65,6 +66,7 @@ impl KDifference {
 
 /// KotoObject wrapper for fidget Intersection
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Intersection")]
 pub struct KIntersection(Intersection);
 
 impl KotoObject for KIntersection {
@@ -115,6 +117,7 @@ impl KIntersection {
 
 /// KotoObject wrapper for fidget Inverse
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Inverse")]
 pub struct KInverse(Inverse);
 
 impl KotoObject for KInverse {
@@ -165,6 +168,7 @@ impl KInverse {
 
 /// KotoObject wrapper for fidget Union
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Union")]
 pub struct KUnion(Union);
 
 impl KotoObject for KUnion {

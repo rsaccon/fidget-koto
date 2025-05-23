@@ -9,6 +9,7 @@ use crate::KTree;
 
 /// KotoObject wrapper for fidget Move
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Move")]
 pub struct KMove(Move);
 
 impl KotoObject for KMove {
@@ -69,6 +70,7 @@ impl KMove {
 
 /// KotoObject wrapper for fidget Scale
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Scale")]
 pub struct KScale(Scale);
 
 impl KotoObject for KScale {

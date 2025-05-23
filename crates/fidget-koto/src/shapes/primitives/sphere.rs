@@ -9,6 +9,7 @@ use crate::KTree;
 
 /// KotoObject wrapper for fidget Sphere
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Sphere")]
 pub struct KSphere(Sphere);
 
 impl KotoObject for KSphere {

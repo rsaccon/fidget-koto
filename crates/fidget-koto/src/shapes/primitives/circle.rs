@@ -9,6 +9,7 @@ use crate::KTree;
 
 /// KotoObject wrapper for fidget Circle
 #[derive(Clone, KotoCopy, KotoType)]
+#[koto(type_name = "Circle")]
 pub struct KCircle(Circle);
 
 impl KotoObject for KCircle {
