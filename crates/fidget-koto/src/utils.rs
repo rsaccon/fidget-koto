@@ -1,34 +1,37 @@
-use super::{KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KTree, KUnion};
+use super::{
+    KotoCircle, KotoDifference, KotoIntersection, KotoInverse, KotoMove, KotoScale, KotoSphere,
+    KotoTree, KotoUnion,
+};
 use fidget::context::Tree;
 use koto::runtime::KObject;
 
 pub(crate) fn maybe_tree(obj: &KObject) -> Option<Tree> {
-    if obj.is_a::<KTree>() {
-        let k_tree = obj.cast::<KTree>();
+    if obj.is_a::<KotoTree>() {
+        let k_tree = obj.cast::<KotoTree>();
         Some(k_tree.unwrap().inner())
-    } else if obj.is_a::<KCircle>() {
-        let k_tree = obj.cast::<KCircle>();
+    } else if obj.is_a::<KotoCircle>() {
+        let k_tree = obj.cast::<KotoCircle>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KSphere>() {
-        let k_tree = obj.cast::<KSphere>();
+    } else if obj.is_a::<KotoSphere>() {
+        let k_tree = obj.cast::<KotoSphere>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KUnion>() {
-        let k_tree = obj.cast::<KUnion>();
+    } else if obj.is_a::<KotoUnion>() {
+        let k_tree = obj.cast::<KotoUnion>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KIntersection>() {
-        let k_tree = obj.cast::<KIntersection>();
+    } else if obj.is_a::<KotoIntersection>() {
+        let k_tree = obj.cast::<KotoIntersection>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KDifference>() {
-        let k_tree = obj.cast::<KDifference>();
+    } else if obj.is_a::<KotoDifference>() {
+        let k_tree = obj.cast::<KotoDifference>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KInverse>() {
-        let k_tree = obj.cast::<KInverse>();
+    } else if obj.is_a::<KotoInverse>() {
+        let k_tree = obj.cast::<KotoInverse>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KMove>() {
-        let k_tree = obj.cast::<KMove>();
+    } else if obj.is_a::<KotoMove>() {
+        let k_tree = obj.cast::<KotoMove>();
         Some(Tree::from(k_tree.unwrap().inner()))
-    } else if obj.is_a::<KScale>() {
-        let k_tree = obj.cast::<KScale>();
+    } else if obj.is_a::<KotoScale>() {
+        let k_tree = obj.cast::<KotoScale>();
         Some(Tree::from(k_tree.unwrap().inner()))
     } else {
         None

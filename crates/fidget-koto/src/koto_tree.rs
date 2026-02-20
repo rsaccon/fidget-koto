@@ -10,9 +10,9 @@ type Inner = Tree;
 /// KotoObject wrapper for fidget Tree
 #[derive(Clone, KotoCopy, KotoType)]
 #[koto(type_name = "Tree")]
-pub struct KTree(Inner);
+pub struct KotoTree(Inner);
 
-impl KotoObject for KTree {
+impl KotoObject for KotoTree {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
@@ -128,39 +128,39 @@ impl KotoObject for KTree {
     }
 }
 
-impl From<Inner> for KTree {
+impl From<Inner> for KotoTree {
     fn from(tree: Inner) -> Self {
         Self(tree)
     }
 }
 
-impl From<KTree> for KValue {
-    fn from(obj: KTree) -> Self {
+impl From<KotoTree> for KValue {
+    fn from(obj: KotoTree) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for KTree {
+impl fmt::Display for KotoTree {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Tree{{}}")
     }
 }
 
 #[koto_impl]
-impl KTree {
+impl KotoTree {
     /// Create KotoObject representing Tree::x()
     pub fn x() -> KObject {
-        KObject::from(Self(Inner::x().into()))
+        KObject::from(Self(Inner::x()))
     }
 
     /// Create KotoObject representing Tree::y()
     pub fn y() -> KObject {
-        KObject::from(Self(Inner::y().into()))
+        KObject::from(Self(Inner::y()))
     }
 
     /// Create KotoObject representing Tree::z()
     pub fn z() -> KObject {
-        KObject::from(Self(Inner::z().into()))
+        KObject::from(Self(Inner::z()))
     }
 
     /// Access the inner fidget Tree struct
@@ -186,7 +186,7 @@ impl KTree {
                     let y = obj_y.cast::<Self>()?.inner();
                     let z = obj_z.cast::<Self>()?.inner();
                     let tree = tree.remap_xyz(x, y, z);
-                    Ok(KObject::from(Self(tree.into())).into())
+                    Ok(KObject::from(Self(tree)).into())
                 } else {
                     unexpected_args("|x, y, z|", args)
                 }

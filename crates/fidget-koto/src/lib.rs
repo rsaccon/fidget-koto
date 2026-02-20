@@ -41,14 +41,13 @@
 //! # Ok::<(), fidget::Error>(())
 //! ```
 //!
-//! Within a call to [`Engine::run`], `draw` and `draw_rgb` insert shapes into  // TODO: fix doc
-//! [`ScriptContext::shapes`], which is returned after script evaluation is     // TODO: fix doc
-//! complete.                                                                   // TODO: fix doc
+//! Within a call to [`Engine::run`], `draw` inserts shapes into
+//! [`ScriptContext::shapes`], which is returned after script evaluation is
+//! complete. The `draw` function accepts an optional RGB color (values 0.0-1.0).
 //!
-//! Scripts are evaluated in a Koto context that includes [`core.koto`](core),
-//! which defines a few simple shapes and transforms.  `x`, `y`, and `z` are
-//! defined in the root scope, and `axes()` returns an object with `x`/`y`/`z`
-//! members.
+//! Scripts are evaluated in a Koto context with built-in shapes and transforms.
+//! `x`, `y`, and `z` are defined in the root scope, and `axes()` returns a
+//! tuple `(x, y, z)`.
 
 use fidget::context::Tree;
 
@@ -56,13 +55,16 @@ use fidget::context::Tree;
 mod macros;
 
 mod engine;
-mod ktree;
+mod koto_tree;
 mod shapes;
 mod utils;
 
-pub use engine::Engine;
-pub use ktree::KTree;
-pub use shapes::{KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KUnion};
+pub use engine::{Engine, EngineSettings};
+pub use koto_tree::KotoTree;
+pub use shapes::{
+    KotoCircle, KotoDifference, KotoIntersection, KotoInverse, KotoMove, KotoScale, KotoSphere,
+    KotoUnion,
+};
 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -111,3 +113,100 @@ pub fn eval(s: &str) -> Result<Tree, koto::Error> {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use fidget::{shape::EzShape, vm::VmShape};
+
+    #[test]
+    fn test_eval_simple_expression() {
+        let tree = eval("x + y").expect("eval should succeed");
+        let shape = VmShape::from(tree);
+        let mut point_eval = VmShape::new_point_eval();
+        let tape = shape.ez_point_tape();
+        let (result, _) = point_eval.eval(&tape, 1.0, 2.0, 0.0).unwrap();
+        assert_eq!(result, 3.0);
+    }
+
+    #[test]
+    fn test_eval_with_z() {
+        let tree = eval("x + y + z").expect("eval should succeed");
+        let shape = VmShape::from(tree);
+        let mut point_eval = VmShape::new_point_eval();
+        let tape = shape.ez_point_tape();
+        let (result, _) = point_eval.eval(&tape, 1.0, 2.0, 3.0).unwrap();
+        assert_eq!(result, 6.0);
+    }
+
+    #[test]
+    fn test_engine_run_draw() {
+        let mut engine = Engine::default();
+        let out = engine.run("draw(x + y)").expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+        // Default color is white
+        assert_eq!(out.shapes[0].color_rgb, [255, 255, 255]);
+    }
+
+    #[test]
+    fn test_engine_run_draw_with_color() {
+        let mut engine = Engine::default();
+        let out = engine
+            .run("draw(x + y, 1.0, 0.5, 0.0)")
+            .expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+        assert_eq!(out.shapes[0].color_rgb, [255, 127, 0]);
+    }
+
+    #[test]
+    fn test_engine_run_multiple_draws() {
+        let mut engine = Engine::default();
+        let out = engine.run("draw(x)\ndraw(y)").expect("run should succeed");
+        assert_eq!(out.shapes.len(), 2);
+    }
+
+    #[test]
+    fn test_engine_load_module() {
+        let mut engine = Engine::default();
+        engine
+            .load_module("config", "export radius: 0.5")
+            .expect("load_module should succeed");
+        let out = engine
+            .run("draw sphere config.radius")
+            .expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+    }
+
+    #[test]
+    fn test_color_clamping() {
+        let mut engine = Engine::default();
+        // Test values outside 0.0-1.0 range get clamped
+        let out = engine
+            .run("draw(x, -0.5, 2.0, 0.5)")
+            .expect("run should succeed");
+        assert_eq!(out.shapes[0].color_rgb, [0, 255, 127]);
+    }
+
+    #[test]
+    fn test_sphere_builtin() {
+        let mut engine = Engine::default();
+        let out = engine.run("draw sphere 1.0").expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+    }
+
+    #[test]
+    fn test_circle_builtin() {
+        let mut engine = Engine::default();
+        let out = engine.run("draw circle 1.0").expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+    }
+
+    #[test]
+    fn test_csg_union() {
+        let mut engine = Engine::default();
+        let out = engine
+            .run("draw union(sphere(0.5), sphere(0.3))")
+            .expect("run should succeed");
+        assert_eq!(out.shapes.len(), 1);
+    }
+}

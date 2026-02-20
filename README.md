@@ -1,12 +1,12 @@
 # fidget-koto
-[Koto](https:://koto.dev) scripting for fidget (as alternative to Rhai)
+[Koto](https://koto.dev) scripting for fidget (as alternative to Rhai)
 
 ## Demo
 fidget-viewer https://github.com/mkeeter/fidget/tree/main/demos/viewer modified to accept Koto scripts.
 ```Shell
 cargo run --release -p fidget-viewer PATH_TO_YOUR_KOTO_SCRIPT_MODEL
 ```
-The `models` folder has some examples (all Rhai fidget models have been ported to Koto and some new ones added). The fidget-viewer can currently only watch one Koto file, therefore any attempt to import from a differnt module represented by a differnt Koto file in the `models` folder will fail.
+The `models` folder has some examples (all Rhai fidget models have been ported to Koto and some new ones added). The fidget-viewer can currently only watch one Koto file, therefore any attempt to import from a different module represented by a different Koto file in the `models` folder will fail.
 
 ## Differences to fidget Rhai scripting:
 * no `draw_rgb()` function, just use `draw()` with optionally adding the color arguments `r`, `g` and `b`.
@@ -29,7 +29,7 @@ draw (x.square() + y.square() + z.square()).sqrt() - 1
 ```
 or with operators where possible:
 ```koto
-draw (x^2 + y^2 + z^2)).sqrt() - 1
+draw (x^2 + y^2 + z^2).sqrt() - 1
 ```
 or from scratch, but with importing fidget `Tree` operations into global namespace:
 ```koto
