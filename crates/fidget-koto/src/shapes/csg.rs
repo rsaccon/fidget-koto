@@ -5,48 +5,46 @@ use fidget::{
 use koto::{derive::*, prelude::*, runtime};
 use std::fmt;
 
-use crate::KTree;
+use crate::KotoTree;
 
 /// KotoObject wrapper for fidget Difference
 #[derive(Clone, KotoCopy, KotoType)]
-pub struct KDifference(Difference);
+pub struct KotoDifference(Difference);
 
-impl KotoObject for KDifference {
+impl KotoObject for KotoDifference {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
     }
 }
 
-impl From<Difference> for KDifference {
+impl From<Difference> for KotoDifference {
     fn from(tree: Difference) -> Self {
         Self(tree)
     }
 }
 
-impl From<KDifference> for KValue {
-    fn from(obj: KDifference) -> Self {
+impl From<KotoDifference> for KValue {
+    fn from(obj: KotoDifference) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for KDifference {
+impl fmt::Display for KotoDifference {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Difference{{}}")
     }
 }
 
 #[koto_impl]
-impl KDifference {
+impl KotoDifference {
     /// Create KotoObject representing fidget::shapes::Difference
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(a: Tree, b: Tree) -> KObject {
-        KObject::from(KDifference(
-            Difference {
-                shape: a,
-                cutout: b,
-            }
-            .into(),
-        ))
+        KObject::from(KotoDifference(Difference {
+            shape: a,
+            cutout: b,
+        }))
     }
 
     /// Access the inner fidget Difference struct
@@ -57,7 +55,7 @@ impl KDifference {
     /// Access the inner fidget Tree struct
     #[koto_method]
     fn tree(&self) -> runtime::Result<KValue> {
-        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+        Ok(KValue::Object(KObject::from(KotoTree::from(Tree::from(
             self.inner(),
         )))))
     }
@@ -65,38 +63,39 @@ impl KDifference {
 
 /// KotoObject wrapper for fidget Intersection
 #[derive(Clone, KotoCopy, KotoType)]
-pub struct KIntersection(Intersection);
+pub struct KotoIntersection(Intersection);
 
-impl KotoObject for KIntersection {
+impl KotoObject for KotoIntersection {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
     }
 }
 
-impl From<Intersection> for KIntersection {
+impl From<Intersection> for KotoIntersection {
     fn from(tree: Intersection) -> Self {
         Self(tree)
     }
 }
 
-impl From<KIntersection> for KValue {
-    fn from(obj: KIntersection) -> Self {
+impl From<KotoIntersection> for KValue {
+    fn from(obj: KotoIntersection) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for KIntersection {
+impl fmt::Display for KotoIntersection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Intersection{{}}")
     }
 }
 
 #[koto_impl]
-impl KIntersection {
+impl KotoIntersection {
     /// Create KotoObject representing fidget::shapes::Intersection
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(a: Tree, b: Tree) -> KObject {
-        KObject::from(Self(Intersection { input: vec![a, b] }.into()))
+        KObject::from(Self(Intersection { input: vec![a, b] }))
     }
 
     /// Access the inner fidget Intersection struct
@@ -107,7 +106,7 @@ impl KIntersection {
     /// Access the inner fidget Tree struct
     #[koto_method]
     fn tree(&self) -> runtime::Result<KValue> {
-        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+        Ok(KValue::Object(KObject::from(KotoTree::from(Tree::from(
             self.inner(),
         )))))
     }
@@ -115,38 +114,39 @@ impl KIntersection {
 
 /// KotoObject wrapper for fidget Inverse
 #[derive(Clone, KotoCopy, KotoType)]
-pub struct KInverse(Inverse);
+pub struct KotoInverse(Inverse);
 
-impl KotoObject for KInverse {
+impl KotoObject for KotoInverse {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
     }
 }
 
-impl From<Inverse> for KInverse {
+impl From<Inverse> for KotoInverse {
     fn from(tree: Inverse) -> Self {
         Self(tree)
     }
 }
 
-impl From<KInverse> for KValue {
-    fn from(obj: KInverse) -> Self {
+impl From<KotoInverse> for KValue {
+    fn from(obj: KotoInverse) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for KInverse {
+impl fmt::Display for KotoInverse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Inverse{{}}")
     }
 }
 
 #[koto_impl]
-impl KInverse {
+impl KotoInverse {
     /// Create KotoObject representing fidget::shapes::Inverse
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(shape: Tree) -> KObject {
-        KObject::from(Self(Inverse { shape }.into()))
+        KObject::from(Self(Inverse { shape }))
     }
 
     /// Access the inner fidget Inverse struct
@@ -157,7 +157,7 @@ impl KInverse {
     /// Access the inner fidget Tree struct
     #[koto_method]
     fn tree(&self) -> runtime::Result<KValue> {
-        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+        Ok(KValue::Object(KObject::from(KotoTree::from(Tree::from(
             self.inner(),
         )))))
     }
@@ -165,38 +165,39 @@ impl KInverse {
 
 /// KotoObject wrapper for fidget Union
 #[derive(Clone, KotoCopy, KotoType)]
-pub struct KUnion(Union);
+pub struct KotoUnion(Union);
 
-impl KotoObject for KUnion {
+impl KotoObject for KotoUnion {
     fn display(&self, ctx: &mut DisplayContext) -> runtime::Result<()> {
         ctx.append(self.to_string());
         Ok(())
     }
 }
 
-impl From<Union> for KUnion {
+impl From<Union> for KotoUnion {
     fn from(tree: Union) -> Self {
         Self(tree)
     }
 }
 
-impl From<KUnion> for KValue {
-    fn from(obj: KUnion) -> Self {
+impl From<KotoUnion> for KValue {
+    fn from(obj: KotoUnion) -> Self {
         KObject::from(obj).into()
     }
 }
 
-impl fmt::Display for KUnion {
+impl fmt::Display for KotoUnion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Union{{}}")
     }
 }
 
 #[koto_impl]
-impl KUnion {
+impl KotoUnion {
     /// Create KotoObject representing fidget::shapes::Union
+    #[allow(clippy::new_ret_no_self)]
     pub fn new(a: Tree, b: Tree) -> KObject {
-        KObject::from(Self(Union { input: vec![a, b] }.into()))
+        KObject::from(Self(Union { input: vec![a, b] }))
     }
 
     /// Access the inner fidget Union struct
@@ -207,7 +208,7 @@ impl KUnion {
     /// Access the inner fidget Tree struct
     #[koto_method]
     fn tree(&self) -> runtime::Result<KValue> {
-        Ok(KValue::Object(KObject::from(KTree::from(Tree::from(
+        Ok(KValue::Object(KObject::from(KotoTree::from(Tree::from(
             self.inner(),
         )))))
     }

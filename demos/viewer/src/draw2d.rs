@@ -15,13 +15,10 @@ struct Resources {
 impl Resources {
     fn init(device: &wgpu::Device, target_format: wgpu::TextureFormat) -> Self {
         // Create RGBA shader module
-        let rgba_shader =
-            device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("RGBA Shader"),
-                source: wgpu::ShaderSource::Wgsl(
-                    include_str!("shaders/image.wgsl").into(),
-                ),
-            });
+        let rgba_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("RGBA Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("shaders/image.wgsl").into()),
+        });
 
         // Create samplers
         let rgba_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
@@ -45,9 +42,7 @@ impl Resources {
                         binding: 0,
                         visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float {
-                                filterable: true,
-                            },
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
@@ -57,64 +52,60 @@ impl Resources {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(
-                            wgpu::SamplerBindingType::Filtering,
-                        ),
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                         count: None,
                     },
                 ],
             });
 
         // Create render pipeline layouts
-        let rgba_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("RGBA Render Pipeline Layout"),
-                bind_group_layouts: &[&rgba_bind_group_layout],
-                push_constant_ranges: &[],
-            });
+        let rgba_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("RGBA Render Pipeline Layout"),
+            bind_group_layouts: &[&rgba_bind_group_layout],
+            push_constant_ranges: &[],
+        });
 
         // Create the RGBA render pipeline
-        let rgba_pipeline =
-            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("RGBA Render Pipeline"),
-                layout: Some(&rgba_pipeline_layout),
-                cache: None,
-                vertex: wgpu::VertexState {
-                    module: &rgba_shader,
-                    entry_point: Some("vs_main"),
-                    buffers: &[],
-                    compilation_options: Default::default(),
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &rgba_shader,
-                    entry_point: Some("fs_main"),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: target_format,
-                        blend: Some(wgpu::BlendState {
-                            color: wgpu::BlendComponent::OVER,
-                            alpha: wgpu::BlendComponent::OVER,
-                        }),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                    compilation_options: Default::default(),
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList,
-                    strip_index_format: None,
-                    front_face: wgpu::FrontFace::Ccw,
-                    cull_mode: None,
-                    polygon_mode: wgpu::PolygonMode::Fill,
-                    unclipped_depth: false,
-                    conservative: false,
-                },
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState {
-                    count: 1,
-                    mask: !0,
-                    alpha_to_coverage_enabled: false,
-                },
-                multiview: None,
-            });
+        let rgba_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("RGBA Render Pipeline"),
+            layout: Some(&rgba_pipeline_layout),
+            cache: None,
+            vertex: wgpu::VertexState {
+                module: &rgba_shader,
+                entry_point: Some("vs_main"),
+                buffers: &[],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &rgba_shader,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: target_format,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent::OVER,
+                        alpha: wgpu::BlendComponent::OVER,
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+        });
         Resources {
             rgba_pipeline,
             tex: None,
@@ -147,35 +138,28 @@ impl Resources {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8Unorm,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING
-                    | wgpu::TextureUsages::COPY_DST,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
                 view_formats: &[],
             });
 
             // Create the texture view
-            let texture_view =
-                texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
             // Create the bind group for this texture
-            let bind_group =
-                device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("RGBA Bind Group"),
-                    layout: &self.rgba_bind_group_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(
-                                &texture_view,
-                            ),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(
-                                &self.rgba_sampler,
-                            ),
-                        },
-                    ],
-                });
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("RGBA Bind Group"),
+                layout: &self.rgba_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&texture_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&self.rgba_sampler),
+                    },
+                ],
+            });
 
             CustomTexture {
                 bind_group,
@@ -195,9 +179,7 @@ impl Resources {
         }
 
         // Upload all of the images to textures
-        for (image_data, tex) in
-            images.iter().zip(self.tex.as_ref().unwrap().1.iter())
-        {
+        for (image_data, tex) in images.iter().zip(self.tex.as_ref().unwrap().1.iter()) {
             // Upload RGBA image data
             queue.write_texture(
                 wgpu::TexelCopyTextureInfo {
@@ -237,15 +219,12 @@ pub(crate) struct Draw2D {
 }
 
 impl Draw2D {
-    pub fn new(
-        data: Option<(Vec<Vec<[u8; 4]>>, fidget::render::ImageSize)>,
-    ) -> Self {
+    pub fn new(data: Option<(Vec<Vec<[u8; 4]>>, fidget::render::ImageSize)>) -> Self {
         Self { data }
     }
 
     pub fn init(wgpu_state: &eframe::egui_wgpu::RenderState) {
-        let resources =
-            Resources::init(&wgpu_state.device, wgpu_state.target_format);
+        let resources = Resources::init(&wgpu_state.device, wgpu_state.target_format);
         wgpu_state
             .renderer
             .write()

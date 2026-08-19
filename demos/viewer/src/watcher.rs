@@ -4,11 +4,7 @@ use log::{debug, warn};
 use std::path::Path;
 
 /// Watches for changes to the given file and sends it on `tx`
-pub(crate) fn file_watcher_thread(
-    path: &Path,
-    rx: Receiver<()>,
-    tx: Sender<String>,
-) -> Result<()> {
+pub(crate) fn file_watcher_thread(path: &Path, rx: Receiver<()>, tx: Sender<String>) -> Result<()> {
     let read_file = || -> Result<String> {
         let out = String::from_utf8(std::fs::read(path)?).unwrap();
         Ok(out)

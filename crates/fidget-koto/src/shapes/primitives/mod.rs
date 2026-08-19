@@ -1,5 +1,5 @@
 mod circle;
 mod sphere;
 
-pub use circle::KCircle;
-pub use sphere::KSphere;
+pub use circle::KotoCircle;
+pub use sphere::KotoSphere;

@@ -3,7 +3,7 @@ use eframe::{
     egui,
     egui_wgpu::{self, wgpu},
 };
-use fidget::render::GeometryPixel;
+use fidget::raster::GeometryPixel;
 use zerocopy::{Immutable, IntoBytes};
 
 /// Configuration for 3D rendering with geometry data
@@ -28,30 +28,23 @@ struct Resources {
 }
 
 impl Resources {
-    pub fn init(
-        device: &wgpu::Device,
-        target_format: wgpu::TextureFormat,
-    ) -> Self {
+    pub fn init(device: &wgpu::Device, target_format: wgpu::TextureFormat) -> Self {
         // Create Geometry shader module
-        let geometry_shader =
-            device.create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("Geometry Shader"),
-                source: wgpu::ShaderSource::Wgsl(
-                    include_str!("shaders/geometry.wgsl").into(),
-                ),
-            });
+        let geometry_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Geometry Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("shaders/geometry.wgsl").into()),
+        });
 
-        let geometry_sampler =
-            device.create_sampler(&wgpu::SamplerDescriptor {
-                label: Some("Geometry Sampler"),
-                address_mode_u: wgpu::AddressMode::ClampToEdge,
-                address_mode_v: wgpu::AddressMode::ClampToEdge,
-                address_mode_w: wgpu::AddressMode::ClampToEdge,
-                mag_filter: wgpu::FilterMode::Nearest, // Use nearest for integer textures
-                min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                ..Default::default()
-            });
+        let geometry_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("Geometry Sampler"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest, // Use nearest for integer textures
+            min_filter: wgpu::FilterMode::Nearest,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
 
         // Create bind group layout for Geometry texture and sampler
         let geometry_bind_group_layout =
@@ -73,9 +66,7 @@ impl Resources {
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(
-                            wgpu::SamplerBindingType::NonFiltering,
-                        ),
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
                         count: None,
                     },
                     // Uniform buffer for render configuration
@@ -100,58 +91,55 @@ impl Resources {
             });
 
         // Create the Geometry render pipeline
-        let geometry_pipeline =
-            device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Geometry Render Pipeline"),
-                layout: Some(&geometry_pipeline_layout),
-                cache: None,
-                vertex: wgpu::VertexState {
-                    module: &geometry_shader,
-                    entry_point: Some("vs_main"),
-                    buffers: &[],
-                    compilation_options: Default::default(),
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &geometry_shader,
-                    entry_point: Some("fs_main"),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: target_format,
-                        blend: Some(wgpu::BlendState {
-                            color: wgpu::BlendComponent::OVER,
-                            alpha: wgpu::BlendComponent::OVER,
-                        }),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                    compilation_options: Default::default(),
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList,
-                    strip_index_format: None,
-                    front_face: wgpu::FrontFace::Ccw,
-                    cull_mode: None,
-                    polygon_mode: wgpu::PolygonMode::Fill,
-                    unclipped_depth: false,
-                    conservative: false,
-                },
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState {
-                    count: 1,
-                    mask: !0,
-                    alpha_to_coverage_enabled: false,
-                },
-                multiview: None,
-            });
+        let geometry_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("Geometry Render Pipeline"),
+            layout: Some(&geometry_pipeline_layout),
+            cache: None,
+            vertex: wgpu::VertexState {
+                module: &geometry_shader,
+                entry_point: Some("vs_main"),
+                buffers: &[],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &geometry_shader,
+                entry_point: Some("fs_main"),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: target_format,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent::OVER,
+                        alpha: wgpu::BlendComponent::OVER,
+                    }),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: Default::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+        });
 
         // Create a buffer for render configuration
         let render_config = RenderConfig::default();
-        let render_config_buffer =
-            device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("Render Config Buffer"),
-                size: std::mem::size_of::<RenderConfig>() as u64,
-                usage: wgpu::BufferUsages::UNIFORM
-                    | wgpu::BufferUsages::COPY_DST,
-                mapped_at_creation: false,
-            });
+        let render_config_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("Render Config Buffer"),
+            size: std::mem::size_of::<RenderConfig>() as u64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
         Resources {
             geometry_pipeline,
             tex: None,
@@ -188,45 +176,36 @@ impl Resources {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba32Uint,
-                usage: wgpu::TextureUsages::TEXTURE_BINDING
-                    | wgpu::TextureUsages::COPY_DST,
+                usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
                 view_formats: &[],
             });
 
             // Create the texture view
-            let texture_view =
-                texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let texture_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
 
             // Create the bind group for this texture
-            let bind_group =
-                device.create_bind_group(&wgpu::BindGroupDescriptor {
-                    label: Some("Geometry Bind Group"),
-                    layout: &self.geometry_bind_group_layout,
-                    entries: &[
-                        wgpu::BindGroupEntry {
-                            binding: 0,
-                            resource: wgpu::BindingResource::TextureView(
-                                &texture_view,
-                            ),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 1,
-                            resource: wgpu::BindingResource::Sampler(
-                                &self.geometry_sampler,
-                            ),
-                        },
-                        wgpu::BindGroupEntry {
-                            binding: 2,
-                            resource: wgpu::BindingResource::Buffer(
-                                wgpu::BufferBinding {
-                                    buffer: &self.render_config_buffer,
-                                    offset: 0,
-                                    size: None,
-                                },
-                            ),
-                        },
-                    ],
-                });
+            let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Geometry Bind Group"),
+                layout: &self.geometry_bind_group_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(&texture_view),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(&self.geometry_sampler),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
+                            buffer: &self.render_config_buffer,
+                            offset: 0,
+                            size: None,
+                        }),
+                    },
+                ],
+            });
 
             CustomTexture {
                 bind_group,
@@ -240,8 +219,7 @@ impl Resources {
                 tex_data.resize_with(images.len(), new_geometry_tex);
             }
             Some(..) | None => {
-                let textures =
-                    images.iter().map(|_i| new_geometry_tex()).collect();
+                let textures = images.iter().map(|_i| new_geometry_tex()).collect();
                 self.tex = Some((image_size, textures));
             }
         }
@@ -253,16 +231,10 @@ impl Resources {
             Mode3D::Shaded => 2,
         };
         self.render_config.max_depth = max_depth;
-        queue.write_buffer(
-            &self.render_config_buffer,
-            0,
-            self.render_config.as_bytes(),
-        );
+        queue.write_buffer(&self.render_config_buffer, 0, self.render_config.as_bytes());
 
         // Upload all of the images to textures
-        for (image_data, tex) in
-            images.iter().zip(self.tex.as_ref().unwrap().1.iter())
-        {
+        for (image_data, tex) in images.iter().zip(self.tex.as_ref().unwrap().1.iter()) {
             // Upload geometry data using AsBytes trait
             queue.write_texture(
                 wgpu::TexelCopyTextureInfo {
@@ -317,8 +289,7 @@ impl Draw3D {
     }
 
     pub fn init(wgpu_state: &eframe::egui_wgpu::RenderState) {
-        let resources =
-            Resources::init(&wgpu_state.device, wgpu_state.target_format);
+        let resources = Resources::init(&wgpu_state.device, wgpu_state.target_format);
         wgpu_state
             .renderer
             .write()

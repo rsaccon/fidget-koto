@@ -1,6 +1,6 @@
 use super::{
-    DrawShape, KCircle, KDifference, KIntersection, KInverse, KMove, KScale, KSphere, KTree,
-    KUnion, ScriptContext,
+    DrawShape, KotoCircle, KotoDifference, KotoIntersection, KotoInverse, KotoMove, KotoScale,
+    KotoSphere, KotoTree, KotoUnion, ScriptContext,
 };
 use crate::utils::maybe_tree;
 use fidget::context::Tree;
@@ -10,12 +10,17 @@ use std::time::Duration;
 
 /// Engine initialization settings
 pub struct EngineSettings {
-    add_fidget_fns: bool,
-    execution_limit: Duration,
+    /// Whether to add fidget functions directly to prelude (true) or under 'fidget' module (false)
+    pub add_fidget_fns: bool,
+    /// Maximum execution time for scripts
+    pub execution_limit: Duration,
+    /// Whether to print debug messages when modules are imported
+    pub debug_module_imports: bool,
 }
 
 /// Engine for evaluating a Koto script with Fidget-specific bindings
 pub struct Engine {
+    #[allow(dead_code)]
     settings: EngineSettings,
     engine: Koto,
     context: Arc<Mutex<ScriptContext>>,
@@ -26,24 +31,39 @@ impl Default for Engine {
         Self::new(EngineSettings {
             add_fidget_fns: false,
             execution_limit: Duration::from_secs(1),
+            debug_module_imports: false,
         })
     }
 }
 
 impl Engine {
+    /// Sets a numeric variable in the engine's prelude.
+    ///
+    /// This allows scripts to reference the variable by name.
+    pub fn set_var(&mut self, name: &str, value: f64) {
+        self.engine
+            .prelude()
+            .insert(name, KotoTree::from(Tree::constant(value)));
+    }
+
+    /// Evaluates a script and returns the resulting Tree.
+    ///
+    /// This is similar to `eval` but named for compatibility.
+    pub fn eval_to_tree(&mut self, script: &str) -> Result<Tree, koto::Error> {
+        self.eval(script)
+    }
+
     /// Constructs a script evaluation engine with Fidget bindings
     ///
     /// The context includes a variety of functions that operate on [`Tree`]
-    /// handles.
-    ///
-    /// In addition, it includes everything in [`core.koto`](fidget_koto::core),
-    /// which is effectively our standard library.
+    /// handles, as well as built-in shapes and transforms.
     pub fn new(settings: EngineSettings) -> Self {
+        let debug = settings.debug_module_imports;
         let koto = Koto::with_settings(
             KotoSettings::default()
                 .with_execution_limit(settings.execution_limit)
-                .with_module_imported_callback({
-                    move |path| {
+                .with_module_imported_callback(move |path| {
+                    if debug {
                         println!("module import callback - path: {:?}", path);
                     }
                 }),
@@ -58,7 +78,7 @@ impl Engine {
         prelude.insert("axes", axes);
 
         if settings.add_fidget_fns {
-            add_fidget_module_or_fns(&prelude);
+            add_fidget_module_or_fns(prelude);
         } else {
             let module = KMap::with_type("fidget");
             add_fidget_module_or_fns(&module);
@@ -72,14 +92,14 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Object(obj)] => {
-                    if let Some(tree) = maybe_tree(&obj) {
+                    if let Some(tree) = maybe_tree(obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree,
                             color_rgb: [u8::MAX; 3],
                         });
                         Ok(KValue::Null)
                     } else {
-                        unexpected_args("|Tree|", &args)
+                        unexpected_args("|Tree|", args)
                     }
                 }
                 [
@@ -88,17 +108,17 @@ impl Engine {
                     KValue::Number(g),
                     KValue::Number(b),
                 ] => {
-                    if let Some(tree) = maybe_tree(&obj) {
+                    if let Some(tree) = maybe_tree(obj) {
                         context_clone.lock().unwrap().shapes.push(DrawShape {
                             tree,
                             color_rgb: [to_u8(r), to_u8(g), to_u8(b)],
                         });
                         Ok(KValue::Null)
                     } else {
-                        unexpected_args("|Tree|", &args)
+                        unexpected_args("|Tree|", args)
                     }
                 }
-                unexpected => unexpected_args("|Tree|", &unexpected),
+                unexpected => unexpected_args("|Tree|", unexpected),
             }
         });
 
@@ -106,14 +126,14 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let result = KCircle::new(f64::from(radius), f64::from(0.0), f64::from(0.0));
-                    Ok(KValue::Object(KObject::from(result)))
+                    let result = KotoCircle::new(f64::from(radius), 0.0, 0.0);
+                    Ok(KValue::Object(result))
                 }
                 [KValue::Number(radius), KValue::Number(x), KValue::Number(y)] => {
-                    let result = KCircle::new(f64::from(radius), f64::from(x), f64::from(y));
-                    Ok(KValue::Object(KObject::from(result)))
+                    let result = KotoCircle::new(f64::from(radius), f64::from(x), f64::from(y));
+                    Ok(KValue::Object(result))
                 }
-                unexpected => unexpected_args("|Circle|", &unexpected),
+                unexpected => unexpected_args("|Circle|", unexpected),
             }
         });
 
@@ -121,13 +141,8 @@ impl Engine {
             let args = ctx.args();
             match args {
                 [KValue::Number(radius)] => {
-                    let result = KSphere::new(
-                        f64::from(radius),
-                        f64::from(0.0),
-                        f64::from(0.0),
-                        f64::from(0.0),
-                    );
-                    Ok(KValue::Object(KObject::from(result)))
+                    let result = KotoSphere::new(f64::from(radius), 0.0, 0.0, 0.0);
+                    Ok(KValue::Object(result))
                 }
                 [
                     KValue::Number(radius),
@@ -135,11 +150,15 @@ impl Engine {
                     KValue::Number(y),
                     KValue::Number(z),
                 ] => {
-                    let result =
-                        KSphere::new(f64::from(radius), f64::from(x), f64::from(y), f64::from(z));
-                    Ok(KValue::Object(KObject::from(result)))
+                    let result = KotoSphere::new(
+                        f64::from(radius),
+                        f64::from(x),
+                        f64::from(y),
+                        f64::from(z),
+                    );
+                    Ok(KValue::Object(result))
                 }
-                unexpected => unexpected_args("|Sphere|", &unexpected),
+                unexpected => unexpected_args("|Sphere|", unexpected),
             }
         });
 
@@ -148,13 +167,13 @@ impl Engine {
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
                     if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
-                        let result = KUnion::new(tree_a, tree_b);
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoUnion::new(tree_a, tree_b);
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Union|", &args)
+                        unexpected_args("|Union|", args)
                     }
                 }
-                unexpected => unexpected_args("|Union|", &unexpected),
+                unexpected => unexpected_args("|Union|", unexpected),
             }
         });
 
@@ -163,13 +182,13 @@ impl Engine {
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
                     if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
-                        let result = KIntersection::new(tree_a, tree_b);
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoIntersection::new(tree_a, tree_b);
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Intersection|", &args)
+                        unexpected_args("|Intersection|", args)
                     }
                 }
-                unexpected => unexpected_args("|Intersection|", &unexpected),
+                unexpected => unexpected_args("|Intersection|", unexpected),
             }
         });
 
@@ -178,13 +197,13 @@ impl Engine {
             match args {
                 [KValue::Object(obj_a), KValue::Object(obj_b)] => {
                     if let (Some(tree_a), Some(tree_b)) = (maybe_tree(obj_a), maybe_tree(obj_b)) {
-                        let result = KDifference::new(tree_a, tree_b);
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoDifference::new(tree_a, tree_b);
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Difference|", &args)
+                        unexpected_args("|Difference|", args)
                     }
                 }
-                unexpected => unexpected_args("|Difference|", &unexpected),
+                unexpected => unexpected_args("|Difference|", unexpected),
             }
         });
 
@@ -193,13 +212,13 @@ impl Engine {
             match args {
                 [KValue::Object(obj)] => {
                     if let Some(tree) = maybe_tree(obj) {
-                        let result = KInverse::new(tree);
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoInverse::new(tree);
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Inverse|", &args)
+                        unexpected_args("|Inverse|", args)
                     }
                 }
-                unexpected => unexpected_args("|Inverse|", &unexpected),
+                unexpected => unexpected_args("|Inverse|", unexpected),
             }
         });
 
@@ -213,13 +232,13 @@ impl Engine {
                     KValue::Number(z),
                 ] => {
                     if let Some(tree) = maybe_tree(obj) {
-                        let result = KMove::new(tree, f64::from(x), f64::from(y), f64::from(z));
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoMove::new(tree, f64::from(x), f64::from(y), f64::from(z));
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Move|", &args)
+                        unexpected_args("|Move|", args)
                     }
                 }
-                unexpected => unexpected_args("|Move|", &unexpected),
+                unexpected => unexpected_args("|Move|", unexpected),
             }
         });
 
@@ -233,13 +252,13 @@ impl Engine {
                     KValue::Number(z),
                 ] => {
                     if let Some(tree) = maybe_tree(obj) {
-                        let result = KScale::new(tree, f64::from(x), f64::from(y), f64::from(z));
-                        Ok(KValue::Object(KObject::from(result)))
+                        let result = KotoScale::new(tree, f64::from(x), f64::from(y), f64::from(z));
+                        Ok(KValue::Object(result))
                     } else {
-                        unexpected_args("|Scale|", &args)
+                        unexpected_args("|Scale|", args)
                     }
                 }
-                unexpected => unexpected_args("|Scale|", &unexpected),
+                unexpected => unexpected_args("|Scale|", unexpected),
             }
         });
 
@@ -250,50 +269,34 @@ impl Engine {
         }
     }
 
+    /// Load a Koto module from source and register it under a name.
+    ///
+    /// This allows scripts to access module exports via `module_name.export_name`.
+    ///
+    /// # Example
+    /// ```ignore
+    /// engine.load_module("config", "export radius: 0.6")?;
+    /// engine.run("draw sphere config.radius")?;
+    /// ```
+    pub fn load_module(&mut self, name: &str, source: &str) -> Result<(), koto::Error> {
+        let mut loader = Koto::new();
+        loader.compile_and_run(source)?;
+
+        let module = KMap::with_type(name);
+        for (key, value) in loader.exports().data().iter() {
+            module.insert(key.clone(), value.clone());
+        }
+        self.engine.prelude().insert(name, module);
+        Ok(())
+    }
+
     /// Executes a full script
     pub fn run(&mut self, script: &str) -> Result<ScriptContext, koto::Error> {
         self.context.lock().unwrap().clear();
 
-        ///////////////////////////////////////////////////////////////////////
-        // BEGIN Experiment, everything hardcoded, just for trying out koto modules import
-        //
-        // Koto:
-        //
-        // simple_module.koto
-        // ------------------
-        // export
-        //   radius: 0.6
-        //
-        // simple_main.koto
-        // ------------------
-        // s1 = sphere simple_module.radius, -0.5, -0.25,  0.0
-        // draw s1
-        //
-        // Rust
-        //
-        // let simple_module_script = include_str!("../../../models/simple_module.koto");
-        // let mut koto_module_loader = Koto::new();
-        // if let Err(err) = koto_module_loader.compile_and_run(simple_module_script) {
-        //     return Err(err);
-        // }
-        // if let Some(radius) = koto_module_loader.exports().data_mut().get_mut("radius") {
-        //     let module = KMap::with_type("simple_module");
-        //     module.insert("radius", radius.clone());
-        //     self.engine
-        //         .prelude()
-        //         .insert("simple_module", module.clone());
-        //     println!("added simple_module");
-        // } else {
-        //     println!("cannot find simple_module");
-        // }
-        // END Experiment
-        ///////////////////////////////////////////////////////////////////////
-
-        self.engine.prelude().insert("x", KTree::x());
-        self.engine.prelude().insert("y", KTree::y());
-        self.engine.prelude().insert("z", KTree::z());
-
-        if self.settings.add_fidget_fns {}
+        self.engine.prelude().insert("x", KotoTree::x());
+        self.engine.prelude().insert("y", KotoTree::y());
+        self.engine.prelude().insert("z", KotoTree::z());
 
         match self.engine.compile_and_run(script) {
             Ok(_) => (),
@@ -309,23 +312,18 @@ impl Engine {
 
     /// Evaluates a single expression, in terms of `x`, `y`, and `z`
     pub fn eval(&mut self, script: &str) -> Result<Tree, koto::Error> {
-        self.engine.prelude().insert("x", KTree::x());
-        self.engine.prelude().insert("y", KTree::y());
-        self.engine.prelude().insert("z", KTree::z());
+        self.engine.prelude().insert("x", KotoTree::x());
+        self.engine.prelude().insert("y", KotoTree::y());
+        self.engine.prelude().insert("z", KotoTree::z());
 
         match self.engine.compile_and_run(script) {
             Ok(KValue::Object(obj)) => match maybe_tree(&obj) {
                 Some(tree) => Ok(tree),
                 _ => Err(koto::Error::from(koto::runtime::Error::new(
-                    // koto::runtime::ErrorKind::UnexpectedError(unexpected_type("Tree", unexpected)),
-                    // TODO: try to use ErrorKind::UnexpectedType
                     koto::runtime::ErrorKind::UnexpectedError,
                 ))),
-                // _ => Err(fidget::Error::BadNode),
             },
             Ok(_) => Err(koto::Error::from(koto::runtime::Error::new(
-                // koto::runtime::ErrorKind::UnexpectedError(unexpected_type("Tree", unexpected)),
-                // TODO: try to use ErrorKind::UnexpectedType
                 koto::runtime::ErrorKind::UnexpectedError,
             ))),
             Err(err) => Err(err),
@@ -333,13 +331,13 @@ impl Engine {
     }
 }
 
-/// Koto axes doc: TODO
+/// Returns a tuple of (x, y, z) coordinate trees for use in expressions.
 fn axes(_ctx: &mut CallContext) -> runtime::Result<KValue> {
     let (x, y, z) = Tree::axes();
     Ok(KValue::Tuple(KTuple::from(vec![
-        KValue::Object(KTree::from(x).into()),
-        KValue::Object(KTree::from(y).into()),
-        KValue::Object(KTree::from(z).into()),
+        KValue::Object(KotoTree::from(x).into()),
+        KValue::Object(KotoTree::from(y).into()),
+        KValue::Object(KotoTree::from(z).into()),
     ])))
 }
 
@@ -353,11 +351,14 @@ fn add_fidget_module_or_fns(module: &KMap) {
                 }
                 match &args[0] {
                     KValue::Object(obj) => match maybe_tree(obj) {
-                        Some(tree) => Ok(KTree::from(tree.$name()).into()),
-                        _ => unexpected_type("invalid type", &args[0]),
+                        Some(tree) => Ok(KotoTree::from(tree.$name()).into()),
+                        _ => unexpected_type("Tree or Number", &args[0]),
                     },
-                    // TODO: check and handle KNumber
-                    unexpected => unexpected_type("invalid type", unexpected),
+                    KValue::Number(num) => {
+                        let tree = Tree::constant(f64::from(num));
+                        Ok(KotoTree::from(tree.$name()).into())
+                    }
+                    unexpected => unexpected_type("Tree or Number", unexpected),
                 }
             });
         };
@@ -374,7 +375,7 @@ fn add_fidget_module_or_fns(module: &KMap) {
                     (KValue::Object(obj_a), KValue::Object(obj_b)) => {
                         match (maybe_tree(obj_a), maybe_tree(obj_b)) {
                             (Some(tree_a), Some(tree_b)) => {
-                                Ok(KTree::from(tree_a.$name(tree_b)).into())
+                                Ok(KotoTree::from(tree_a.$name(tree_b)).into())
                             }
                             _ => unexpected_args("Tree, Tree", args),
                         }
@@ -382,21 +383,21 @@ fn add_fidget_module_or_fns(module: &KMap) {
                     (KValue::Object(obj), KValue::Number(num)) => match maybe_tree(obj) {
                         Some(tree_a) => {
                             let tree_b = Tree::constant(f64::from(num));
-                            Ok(KTree::from(tree_a.$name(tree_b)).into())
+                            Ok(KotoTree::from(tree_a.$name(tree_b)).into())
                         }
                         _ => unexpected_args("Tree, Number", args),
                     },
                     (KValue::Number(num), KValue::Object(obj)) => match maybe_tree(obj) {
                         Some(tree_b) => {
                             let tree_a = Tree::constant(f64::from(num));
-                            Ok(KTree::from(tree_a.$name(tree_b)).into())
+                            Ok(KotoTree::from(tree_a.$name(tree_b)).into())
                         }
                         _ => unexpected_args("Number, Tree", args),
                     },
                     (KValue::Number(num1), KValue::Number(num2)) => {
                         let tree_a = Tree::constant(f64::from(num1));
                         let tree_b = Tree::constant(f64::from(num2));
-                        Ok(KTree::from(tree_a.$name(tree_b)).into())
+                        Ok(KotoTree::from(tree_a.$name(tree_b)).into())
                     }
                     _ => unexpected_args("Tree|Number, Tree|Number", args),
                 }
